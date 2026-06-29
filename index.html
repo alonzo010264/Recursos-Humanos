@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>IVAD · Solicitud de Permiso</title>
+<meta name="description" content="Formulario oficial de solicitud de permiso de IVAD Home & Goods." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<main class="page">
+  <form id="permiso-form" class="sheet" novalidate>
+    <!-- Header -->
+    <header class="sheet__header">
+      <img src="Logo.png" alt="IVAD Home & Goods" class="logo" />
+      <div class="title">
+        <h1>SOLICITUD DE PERMISO</h1>
+        <p class="eyebrow">IVAD Home &amp; Goods · Est. 1996</p>
+      </div>
+    </header>
+
+    <!-- Aviso -->
+    <div class="notice">
+      <p><strong>Importante:</strong> Para garantizar una atención oportuna, complete este formulario con al menos
+        <strong>24 horas de anticipación</strong>. Las solicitudes enviadas el mismo día estarán sujetas a disponibilidad.</p>
+    </div>
+
+    <!-- Fecha -->
+    <div class="row-date">
+      <label for="fecha">FECHA DE SOLICITUD:</label>
+      <input type="date" id="fecha" name="fecha" required />
+    </div>
+
+    <!-- Datos del colaborador -->
+    <section class="section">
+      <div class="tag">DATOS DEL COLABORADOR</div>
+      <div class="grid">
+        <label class="field full">
+          <span>Nombre completo</span>
+          <input type="text" name="nombre" placeholder="Nombre y apellidos" maxlength="120" required />
+        </label>
+        <label class="field">
+          <span>Teléfono</span>
+          <input type="tel" name="telefono" maxlength="20" required />
+        </label>
+        <label class="field">
+          <span>Puesto</span>
+          <input type="text" name="puesto" maxlength="80" required />
+        </label>
+      </div>
+    </section>
+
+    <!-- Detalles del permiso -->
+    <section class="section">
+      <div class="tag">DETALLES DEL PERMISO</div>
+      <div class="grid">
+        <label class="field"><span>Desde (fecha)</span><input type="date" name="desde" required /></label>
+        <label class="field"><span>Hasta (fecha)</span><input type="date" name="hasta" required /></label>
+        <label class="field"><span>Hora de inicio</span><input type="time" name="horaInicio" /></label>
+        <label class="field"><span>Hora de fin</span><input type="time" name="horaFin" /></label>
+        <label class="field full">
+          <span>Total solicitado</span>
+          <div class="inline">
+            <input type="number" name="total" min="0" step="0.5" required />
+            <label class="radio"><input type="radio" name="modalidad" value="horas" checked /> Horas</label>
+            <label class="radio"><input type="radio" name="modalidad" value="dias" /> Días</label>
+          </div>
+        </label>
+      </div>
+    </section>
+
+    <!-- Tipo de permiso -->
+    <section class="section">
+      <div class="tag">TIPO DE PERMISO</div>
+      <div class="chips">
+        <label class="chip"><input type="radio" name="tipo" value="personal" checked /> <span>Personal</span></label>
+        <label class="chip"><input type="radio" name="tipo" value="medico" /> <span>Médico</span></label>
+        <label class="chip"><input type="radio" name="tipo" value="familiar" /> <span>Familiar</span></label>
+        <label class="chip"><input type="radio" name="tipo" value="tramite" /> <span>Trámite</span></label>
+        <label class="chip"><input type="radio" name="tipo" value="otro" /> <span>Otro</span></label>
+      </div>
+      <label class="field full" id="otroWrap" hidden>
+        <span>Especifique</span>
+        <input type="text" name="otroTipo" maxlength="100" />
+      </label>
+    </section>
+
+    <!-- Motivo -->
+    <section class="section">
+      <div class="tag">MOTIVO Y JUSTIFICACIÓN</div>
+      <label class="field full">
+        <span>¿Por qué necesita el permiso? (motivo principal)</span>
+        <textarea name="motivo" rows="3" maxlength="500" required placeholder="Describa brevemente el motivo de su solicitud..."></textarea>
+      </label>
+      <label class="field full">
+        <span>Justificación / Detalles adicionales</span>
+        <textarea name="justificacion" rows="4" maxlength="800" placeholder="Información adicional que respalde su solicitud (citas, documentos, etc.)"></textarea>
+      </label>
+      <div class="grid">
+        <label class="field">
+          <span>¿Quién cubrirá sus funciones? (opcional)</span>
+          <input type="text" name="reemplazo" maxlength="120" placeholder="Nombre del compañero o 'horas extras'" />
+        </label>
+        <label class="field">
+          <span>Contacto en caso de emergencia</span>
+          <input type="text" name="contactoEmergencia" maxlength="120" placeholder="Nombre y teléfono" />
+        </label>
+      </div>
+    </section>
+
+    <!-- Declaración -->
+    <section class="section">
+      <div class="tag">DECLARACIÓN</div>
+      <label class="check">
+        <input type="checkbox" name="anticipacion" required />
+        <span>Confirmo que envío esta solicitud con al menos 24 horas de anticipación, o que comprendo que estará sujeta a disponibilidad si es del mismo día.</span>
+      </label>
+      <label class="check">
+        <input type="checkbox" name="compromiso" required />
+        <span>Declaro que la información proporcionada es verdadera y me comprometo a reponer el tiempo o presentar los justificantes correspondientes según las políticas de IVAD Home &amp; Goods.</span>
+      </label>
+    </section>
+
+    <!-- Firma -->
+    <div class="sign">
+      <div><div class="line"></div><p>FIRMA DEL COLABORADOR</p></div>
+      <div><div class="line line--date" id="firmaFecha"></div><p>FECHA</p></div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button type="reset" class="btn btn--ghost">Limpiar</button>
+      <button type="submit" class="btn btn--primary" id="submitBtn" disabled>ENVIAR SOLICITUD</button>
+    </div>
+
+    <p class="foot">IVAD Home &amp; Goods · Departamento de Recursos Humanos · Est. 1996</p>
+  </form>
+
+  <!-- Success -->
+  <div class="success" id="success" hidden>
+    <img src="ivad-logo.png" alt="IVAD" class="logo" />
+    <div class="tag">SOLICITUD ENVIADA</div>
+    <h2>Gracias, <span id="successName">colaborador</span>.</h2>
+    <p>Tu solicitud fue registrada con el folio <strong id="folio"></strong>. Recibirás respuesta de Recursos Humanos.</p>
+    <button class="btn btn--outline" id="resetBtn">Llenar otra solicitud</button>
+  </div>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
