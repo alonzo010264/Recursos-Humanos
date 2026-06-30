@@ -27,12 +27,16 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Inicializar Base de Datos SQLite
-const db = new sqlite3.Database('./database.sqlite', (err) => {
+// Inicializar Base de Datos SQLite (usando /tmp para compatibilidad con Vercel)
+const dbPath = process.env.VERCEL || process.env.NODE_ENV === 'production' 
+  ? '/tmp/database.sqlite' 
+  : './database.sqlite';
+
+const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error("Error al conectar con la base de datos", err.message);
   } else {
-    console.log("Conectado a la base de datos SQLite.");
+    console.log("Conectado a la base de datos SQLite en: " + dbPath);
     db.run(`CREATE TABLE IF NOT EXISTS solicitudes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       fecha TEXT,
@@ -212,3 +216,6 @@ app.post('/api/solicitud', async (req, res) => {
 app.listen(port, () => {
   console.log(`Servidor de Recursos Humanos corriendo en http://localhost:${port}`);
 });
+
+// Exportar la app para Vercel
+module.exports = app;
