@@ -132,31 +132,55 @@ app.post('/api/solicitud', async (req, res) => {
     const correoTecnologia = process.env.CORREO_TECNOLOGIA;
     const correoOrigen = process.env.CORREO_ORIGEN || 'onboarding@resend.dev';
 
+    const logoUrl = "https://raw.githubusercontent.com/alonzo010264/Recursos-Humanos/main/Logo.png";
+    const estiloGlobal = `
+      <style>
+        body { font-family: Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; color: #333; }
+        .container { background-color: #ffffff; padding: 30px; border-radius: 8px; max-width: 600px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .header { text-align: center; border-bottom: 2px solid #eaeaea; padding-bottom: 20px; margin-bottom: 20px; }
+        .header img { max-width: 120px; }
+        .title { font-size: 20px; color: #1a1a1a; font-weight: bold; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px; }
+        .content p { margin: 8px 0; font-size: 15px; line-height: 1.5; }
+        .content strong { color: #555; }
+        .footer { margin-top: 30px; border-top: 1px solid #eaeaea; padding-top: 15px; text-align: center; font-size: 12px; color: #888; }
+      </style>
+    `;
+
     // Correo Detallado para RRHH y otros departamentos
     const asuntoCompleto = `Nueva Solicitud de Permiso - ${data.nombre}`;
     const cuerpoCompleto = `
-      <h2>Nueva Solicitud de Permiso: ${data.nombre}</h2>
-      <p><strong>Fecha de solicitud:</strong> ${data.fecha}</p>
-      <p><strong>Teléfono:</strong> ${data.telefono}</p>
-      <p><strong>Puesto:</strong> ${data.puesto}</p>
-      <p><strong>Tipo de permiso:</strong> ${tipoCompleto}</p>
-      <p><strong>Fechas:</strong> del ${data.desde} al ${data.hasta}</p>
-      <p><strong>Hora:</strong> ${horaCompleta}</p>
-      <p><strong>Total solicitado:</strong> ${totalCompleto}</p>
-      <br>
-      <p><strong>Motivo:</strong> ${data.motivo}</p>
-      <p><strong>Justificación:</strong> ${data.justificacion}</p>
-      <p><strong>Reemplazo:</strong> ${data.reemplazo}</p>
-      <p><strong>Contacto Emergencia:</strong> ${data.contactoEmergencia}</p>
+      ${estiloGlobal}
+      <div class="container">
+        <div class="header">
+          <img src="${logoUrl}" alt="IVAD Home & Goods" />
+          <div class="title">SOLICITUD DE PERMISO</div>
+        </div>
+        <div class="content">
+          <p><strong>Colaborador:</strong> ${data.nombre}</p>
+          <p><strong>Puesto:</strong> ${data.puesto}</p>
+          <p><strong>Teléfono:</strong> ${data.telefono}</p>
+          <hr style="border: 0; border-top: 1px solid #eaeaea; margin: 15px 0;">
+          <p><strong>Tipo de permiso:</strong> <span style="background: #e3f2fd; color: #1976d2; padding: 3px 8px; border-radius: 4px;">${tipoCompleto}</span></p>
+          <p><strong>Fechas:</strong> del ${data.desde} al ${data.hasta}</p>
+          <p><strong>Horario:</strong> ${horaCompleta}</p>
+          <p><strong>Total solicitado:</strong> ${totalCompleto}</p>
+          <hr style="border: 0; border-top: 1px solid #eaeaea; margin: 15px 0;">
+          <p><strong>Motivo principal:</strong></p>
+          <p style="background: #f9f9f9; padding: 10px; border-left: 3px solid #ccc;">${data.motivo}</p>
+          <p><strong>Justificación adicional:</strong> ${data.justificacion || 'N/A'}</p>
+          <p><strong>Reemplazo sugerido:</strong> ${data.reemplazo || 'N/A'}</p>
+          <p><strong>Contacto de Emergencia:</strong> ${data.contactoEmergencia || 'N/A'}</p>
+        </div>
+        <div class="footer">
+          IVAD Home & Goods · Departamento de Recursos Humanos
+        </div>
+      </div>
     `;
 
-    // Correo Resumido para Tecnología
-    const asuntoTecnologia = `Notificación: Solicitud enviada (${data.nombre})`;
-    const cuerpoTecnologia = `
-      <h3>Aviso del Sistema IVAD</h3>
-      <p>Se ha enviado una nueva solicitud de permiso al departamento correspondiente para: <strong>${data.nombre}</strong> (${data.puesto}).</p>
-      <p>Este es un mensaje automático para verificar el funcionamiento del sistema.</p>
-    `;
+    // Correo Resumido para Tecnología (Ahora se manda también el completo pero con otra cabecera o simplemente igual)
+    const asuntoTecnologia = `Notificación IVAD: Solicitud enviada (${data.nombre})`;
+    const cuerpoTecnologia = cuerpoCompleto; // El usuario pidió enviar la solicitud completa con el logo
+
 
     // Envío de correo a los destinatarios principales
     if (correosCompletos.length > 0) {
