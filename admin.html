@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>IVAD · Panel de Administración</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
+<link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-content">
+      <div class="brand">
+        <img src="Logo.png" alt="IVAD" class="nav-logo" />
+        <span>Panel de Recursos Humanos</span>
+      </div>
+      <button id="logoutBtn" class="btn-logout">Cerrar Sesión</button>
+    </div>
+  </nav>
+
+  <main class="dashboard">
+    <header class="dashboard-header">
+      <h1>Registro de Solicitudes</h1>
+      <div class="filters">
+        <input type="text" id="searchInput" placeholder="Buscar por nombre o puesto..." />
+      </div>
+    </header>
+
+    <div class="table-container">
+      <table id="solicitudesTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Enviado el</th>
+            <th>Colaborador</th>
+            <th>Permiso (Fechas)</th>
+            <th>Tipo y Horas</th>
+            <th>Motivo</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- Datos dinámicos aquí -->
+          <tr><td colspan="6" class="loading">Cargando datos...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>
