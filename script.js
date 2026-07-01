@@ -5,7 +5,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const successName = document.getElementById('successName');
   const folio = document.getElementById('folio');
   const resetBtn = document.getElementById('resetBtn');
-  const inputs = form.querySelectorAll('input[required], textarea[required]');
+  const inputs = form.querySelectorAll('input[required]:not([readonly]), textarea[required]');
+  
+  // Establecer fecha actual
+  const fechaInput = document.getElementById('fecha');
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  fechaInput.value = `${year}-${month}-${day}`;
+  
+  // Mostrar fecha en la zona de firma
+  const firmaFecha = document.getElementById('firmaFecha');
+  if (firmaFecha) {
+    firmaFecha.textContent = `${day}/${month}/${year}`;
+  }
   
   // Mostrar ocultar "Otro" tipo de permiso
   const tiposRadios = document.querySelectorAll('input[name="tipo"]');
