@@ -71,7 +71,7 @@ function requireAuth(req, res, next) {
   if (req.session.autenticado) {
     next();
   } else {
-    res.redirect('/login.html');
+    res.redirect('/login');
   }
 }
 
@@ -84,7 +84,7 @@ app.get('/', (req, res) => {
 });
 
 // Rutas protegidas para el panel de administración
-app.get('/admin.html', requireAuth, (req, res) => {
+app.get('/admin', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'admin.html'));
 });
 app.get('/admin.css', requireAuth, (req, res) => {
@@ -94,8 +94,8 @@ app.get('/admin.js', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'admin.js'));
 });
 
-app.get('/login.html', (req, res) => {
-  if (req.session.autenticado) return res.redirect('/admin.html');
+app.get('/login', (req, res) => {
+  if (req.session.autenticado) return res.redirect('/admin');
   res.sendFile(path.join(__dirname, 'login.html'));
 });
 

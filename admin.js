@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const res = await fetch('/api/solicitudes');
       if (res.status === 401) {
-        window.location.href = '/login.html';
+        window.location.href = '/login';
         return;
       }
       const json = await res.json();
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Logout
   logoutBtn.addEventListener('click', async () => {
     await fetch('/api/logout', { method: 'POST' });
-    window.location.href = '/login.html';
+    window.location.href = '/login';
   });
 
   fetchSolicitudes();
