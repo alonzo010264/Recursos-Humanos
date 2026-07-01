@@ -73,13 +73,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         <meta charset='utf-8'>
         <style>
           body { font-family: 'Arial', sans-serif; padding: 20px; color: #333; }
-          .title { font-size: 22px; font-weight: bold; text-align: center; margin-bottom: 20px; text-transform: uppercase; }
-          .field { margin-bottom: 12px; font-size: 14px; }
+          .title { font-size: 20px; font-weight: bold; text-align: center; margin-bottom: 10px; text-transform: uppercase; }
+          .field { margin-bottom: 8px; font-size: 14px; }
           .field strong { color: #000; }
-          .box { border: 1px solid #ccc; padding: 15px; margin-top: 5px; background: #fafafa; min-height: 60px; }
-          .firmas { width: 100%; margin-top: 70px; text-align: center; }
+          .box { border: 1px solid #ccc; padding: 10px; margin-top: 5px; background: #fafafa; min-height: 40px; font-size: 14px; }
+          .firmas { width: 100%; margin-top: 40px; text-align: center; page-break-inside: avoid; }
           .firmas td { width: 50%; padding-top: 10px; }
-          .linea { border-top: 1px solid #000; width: 80%; margin: 0 auto 5px auto; }
         </style>
       </head>
       <body>
@@ -87,21 +86,21 @@ document.addEventListener('DOMContentLoaded', async () => {
           <img src="${logoUrl}" alt="IVAD" width="160" height="124" />
           <div class="title">SOLICITUD DE PERMISO</div>
         </div>
-        <hr style="border: 0; border-top: 2px solid #000; margin: 20px 0;" />
+        <hr style="border: 0; border-top: 2px solid #000; margin: 10px 0 15px 0;" />
         
         <div class="field"><strong>Colaborador:</strong> ${item.nombre}</div>
         <div class="field"><strong>Puesto:</strong> ${item.puesto}</div>
         <div class="field"><strong>Teléfono:</strong> ${item.telefono}</div>
-        <br/>
+        <hr style="border: 0; border-top: 1px dashed #ccc; margin: 10px 0;" />
         <div class="field"><strong>Tipo de permiso:</strong> ${item.tipo}</div>
         <div class="field"><strong>Fechas:</strong> del ${item.desde} al ${item.hasta}</div>
         <div class="field"><strong>Horario:</strong> ${item.hora}</div>
         <div class="field"><strong>Total solicitado:</strong> ${item.total}</div>
         <div class="field"><strong>¿Descontar de vacaciones?:</strong> ${item.descontarVacaciones || 'N/A'}</div>
-        <br/>
+        <hr style="border: 0; border-top: 1px dashed #ccc; margin: 10px 0;" />
         <div class="field"><strong>Motivo principal:</strong></div>
         <div class="box">${item.motivo}</div>
-        <br/>
+        <div style="margin-top: 10px;"></div>
         <div class="field"><strong>Justificación adicional:</strong> ${item.justificacion || '-'}</div>
         <div class="field"><strong>Reemplazo sugerido:</strong> ${item.reemplazo || '-'}</div>
         
