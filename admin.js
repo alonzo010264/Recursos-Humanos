@@ -52,9 +52,87 @@ document.addEventListener('DOMContentLoaded', async () => {
         <td style="max-width: 250px;">
           <div>${item.motivo}</div>
         </td>
+        <td>
+          <button class="btn-word" onclick="window.descargarWord(${item.id})" style="background: #005A9E; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+            📄 Word
+          </button>
+        </td>
       </tr>
     `).join('');
   }
+
+  // Descargar a Word
+  window.descargarWord = function(id) {
+    const item = solicitudes.find(s => s.id === id);
+    if (!item) return;
+
+    const logoUrl = "https://raw.githubusercontent.com/alonzo010264/Recursos-Humanos/main/Logo.png";
+    const htmlContent = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head>
+        <meta charset='utf-8'>
+        <style>
+          body { font-family: 'Arial', sans-serif; padding: 20px; color: #333; }
+          .title { font-size: 22px; font-weight: bold; text-align: center; margin-bottom: 20px; text-transform: uppercase; }
+          .field { margin-bottom: 12px; font-size: 14px; }
+          .field strong { color: #000; }
+          .box { border: 1px solid #ccc; padding: 15px; margin-top: 5px; background: #fafafa; min-height: 60px; }
+          .firmas { width: 100%; margin-top: 70px; text-align: center; }
+          .firmas td { width: 50%; padding-top: 10px; }
+          .linea { border-top: 1px solid #000; width: 80%; margin: 0 auto 5px auto; }
+        </style>
+      </head>
+      <body>
+        <div style="text-align: center;">
+          <img src="${logoUrl}" alt="IVAD" width="160" />
+          <div class="title">SOLICITUD DE PERMISO</div>
+        </div>
+        <hr style="border: 0; border-top: 2px solid #000; margin: 20px 0;" />
+        
+        <div class="field"><strong>Colaborador:</strong> ${item.nombre}</div>
+        <div class="field"><strong>Puesto:</strong> ${item.puesto}</div>
+        <div class="field"><strong>Teléfono:</strong> ${item.telefono}</div>
+        <br/>
+        <div class="field"><strong>Tipo de permiso:</strong> ${item.tipo}</div>
+        <div class="field"><strong>Fechas:</strong> del ${item.desde} al ${item.hasta}</div>
+        <div class="field"><strong>Horario:</strong> ${item.hora}</div>
+        <div class="field"><strong>Total solicitado:</strong> ${item.total}</div>
+        <div class="field"><strong>¿Descontar de vacaciones?:</strong> ${item.descontarVacaciones || 'N/A'}</div>
+        <br/>
+        <div class="field"><strong>Motivo principal:</strong></div>
+        <div class="box">${item.motivo}</div>
+        <br/>
+        <div class="field"><strong>Justificación adicional:</strong> ${item.justificacion || '-'}</div>
+        <div class="field"><strong>Reemplazo sugerido:</strong> ${item.reemplazo || '-'}</div>
+        
+        <table class="firmas" cellspacing="0" cellpadding="0">
+          <tr>
+            <td>
+              <div class="linea"></div>
+              <strong>Firma del Colaborador</strong><br/>
+              ${item.nombre}
+            </td>
+            <td>
+              <div class="linea"></div>
+              <strong>Firma de Recursos Humanos</strong><br/>
+              Aprobación
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Solicitud_Permiso_${item.nombre.replace(/ /g, '_')}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   // Búsqueda
   searchInput.addEventListener('input', (e) => {
