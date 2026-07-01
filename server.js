@@ -11,8 +11,8 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Inicializamos Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Inicializamos Resend (Fallback directo por si fallan las variables de Vercel)
+const resend = new Resend(process.env.RESEND_API_KEY || 're_ivMDQoyH_3PNTzFKrzAbFuDBSdeBAyzWy');
 
 // Configuración de Sesiones para el Login
 app.use(session({
@@ -135,10 +135,10 @@ app.post('/api/solicitud', async (req, res) => {
     stmt.run([data.fecha, data.nombre, data.telefono, data.puesto, tipoCompleto, data.desde, data.hasta, horaCompleta, totalCompleto, data.motivo, data.justificacion, data.reemplazo, data.contactoEmergencia, data.descontarVacaciones]);
     stmt.finalize();
 
-    // 2. Lógica de Correos Múltiples
-    const correosCompletos = process.env.CORREOS_DESTINO ? process.env.CORREOS_DESTINO.split(',') : [];
-    const correoTecnologia = process.env.CORREO_TECNOLOGIA;
-    const correoOrigen = process.env.CORREO_ORIGEN || 'onboarding@resend.dev';
+    // 2. Lógica de Correos Múltiples (Fallbacks añadidos para Vercel)
+    const correosCompletos = process.env.CORREOS_DESTINO ? process.env.CORREOS_DESTINO.split(',') : ['tecnologia@ivadsrl.com'];
+    const correoTecnologia = process.env.CORREO_TECNOLOGIA || null;
+    const correoOrigen = process.env.CORREO_ORIGEN || 'recursoshumanos@ivadsrl.com';
 
     const logoUrl = "https://raw.githubusercontent.com/alonzo010264/Recursos-Humanos/main/Logo.png";
     const estiloGlobal = `
