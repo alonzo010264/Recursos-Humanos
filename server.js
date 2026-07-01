@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const { Resend } = require('resend');
-const sqlite3 = require('sqlite3').verbose();
 const session = require('express-session');
 const path = require('path');
 
@@ -27,39 +26,45 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Inicializar Base de Datos SQLite (usando /tmp para compatibilidad con Vercel)
-const dbPath = process.env.VERCEL || process.env.NODE_ENV === 'production' 
-  ? '/tmp/database.sqlite' 
-  : './database.sqlite';
+// Intentar cargar SQLite de forma segura para evitar crasheos en Vercel
+let db = null;
+try {
+  const sqlite3 = require('sqlite3').verbose();
+  const dbPath = process.env.VERCEL || process.env.NODE_ENV === 'production' 
+    ? '/tmp/database.sqlite' 
+    : './database.sqlite';
 
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error("Error al conectar con la base de datos", err.message);
-  } else {
-    console.log("Conectado a la base de datos SQLite en: " + dbPath);
-    db.run(`CREATE TABLE IF NOT EXISTS solicitudes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      fecha TEXT,
-      nombre TEXT,
-      telefono TEXT,
-      puesto TEXT,
-      tipo TEXT,
-      desde TEXT,
-      hasta TEXT,
-      hora TEXT,
-      total TEXT,
-      motivo TEXT,
-      justificacion TEXT,
-      reemplazo TEXT,
-      contactoEmergencia TEXT,
-      descontarVacaciones TEXT,
-      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`, () => {
-      // Intentar agregar la columna por si la tabla ya existía de antes en local
-      db.run("ALTER TABLE solicitudes ADD COLUMN descontarVacaciones TEXT", () => {});
-    });
-  }
-});
+  db = new sqlite3.Database(dbPath, (err) => {
+    if (err) {
+      console.error("Error al conectar con la base de datos", err.message);
+    } else {
+      console.log("Conectado a la base de datos SQLite en: " + dbPath);
+      db.run(`CREATE TABLE IF NOT EXISTS solicitudes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        fecha TEXT,
+        nombre TEXT,
+        telefono TEXT,
+        puesto TEXT,
+        tipo TEXT,
+        desde TEXT,
+        hasta TEXT,
+        hora TEXT,
+        total TEXT,
+        motivo TEXT,
+        justificacion TEXT,
+        reemplazo TEXT,
+        contactoEmergencia TEXT,
+        descontarVacaciones TEXT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+      )`, () => {
+        // Intentar agregar la columna por si la tabla ya existía de antes en local
+        db.run("ALTER TABLE solicitudes ADD COLUMN descontarVacaciones TEXT", () => {});
+      });
+    }
+  });
+} catch (sqliteError) {
+  console.log("SQLite no soportado en este entorno. Se ejecutará sin base de datos.");
+}
 
 // Middleware de Autenticación
 function requireAuth(req, res, next) {
@@ -113,6 +118,9 @@ app.post('/api/logout', (req, res) => {
 
 // Endpoint para obtener los datos (solo admin)
 app.get('/api/solicitudes', requireAuth, (req, res) => {
+  if (!db) {
+    return res.json({ data: [] });
+  }
   db.all(`SELECT * FROM solicitudes ORDER BY id DESC`, [], (err, rows) => {
     if (err) {
       res.status(500).json({ error: err.message });
