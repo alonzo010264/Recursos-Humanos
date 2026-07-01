@@ -126,9 +126,7 @@ app.post('/api/solicitud', async (req, res) => {
           total: totalCompleto,
           motivo: data.motivo,
           justificacion: data.justificacion,
-          reemplazo: data.reemplazo,
-          contactoEmergencia: data.contactoEmergencia,
-          descontarVacaciones: data.descontarVacaciones
+          reemplazo: data.reemplazo
         }]);
 
       if (supabaseError) {
