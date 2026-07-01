@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       </head>
       <body>
         <div style="text-align: center;">
-          <img src="${logoUrl}" alt="IVAD" width="160" />
+          <img src="${logoUrl}" alt="IVAD" width="160" height="124" />
           <div class="title">SOLICITUD DE PERMISO</div>
         </div>
         <hr style="border: 0; border-top: 2px solid #000; margin: 20px 0;" />
@@ -108,14 +108,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         <table class="firmas" cellspacing="0" cellpadding="0">
           <tr>
             <td>
-              <div class="linea"></div>
+              _________________________________<br/>
               <strong>Firma del Colaborador</strong><br/>
               ${item.nombre}
             </td>
             <td>
-              <div class="linea"></div>
-              <strong>Firma de Recursos Humanos</strong><br/>
-              Aprobación
+              _________________________________<br/>
+              <strong>Firma de Aprobación (Jefe/Encargado)</strong><br/>
             </td>
           </tr>
         </table>
