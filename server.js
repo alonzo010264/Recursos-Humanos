@@ -130,10 +130,16 @@ app.post('/api/solicitud', async (req, res) => {
     const horaCompleta = `${data.horaInicio} a ${data.horaFin}`;
     const totalCompleto = `${data.total} ${data.modalidad}`;
 
-    // 1. Guardar en Base de Datos
-    const stmt = db.prepare(`INSERT INTO solicitudes (fecha, nombre, telefono, puesto, tipo, desde, hasta, hora, total, motivo, justificacion, reemplazo, contactoEmergencia, descontarVacaciones) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-    stmt.run([data.fecha, data.nombre, data.telefono, data.puesto, tipoCompleto, data.desde, data.hasta, horaCompleta, totalCompleto, data.motivo, data.justificacion, data.reemplazo, data.contactoEmergencia, data.descontarVacaciones]);
-    stmt.finalize();
+    // 1. Guardar en Base de Datos (Seguro para Vercel)
+    try {
+      if (db) {
+        const stmt = db.prepare(`INSERT INTO solicitudes (fecha, nombre, telefono, puesto, tipo, desde, hasta, hora, total, motivo, justificacion, reemplazo, contactoEmergencia, descontarVacaciones) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+        stmt.run([data.fecha, data.nombre, data.telefono, data.puesto, tipoCompleto, data.desde, data.hasta, horaCompleta, totalCompleto, data.motivo, data.justificacion, data.reemplazo, data.contactoEmergencia, data.descontarVacaciones]);
+        stmt.finalize();
+      }
+    } catch (dbErr) {
+      console.error("Error de base de datos en Vercel:", dbErr);
+    }
 
     // 2. Lógica de Correos Múltiples (Fallbacks añadidos para Vercel)
     const correosCompletos = process.env.CORREOS_DESTINO ? process.env.CORREOS_DESTINO.split(',') : ['tecnologia@ivadsrl.com'];
