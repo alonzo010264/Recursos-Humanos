@@ -154,8 +154,6 @@ app.post('/api/solicitud', async (req, res) => {
       'logistica@ivadsrl.com',
       'tecnologia@ivadsrl.com',
       'myriamlaval@ivadsrl.com',
-      'decoracion@ivadsrl.com',
-      'desechable@ivadsrl.com',
       'contabilidad@ivadsrl.com',
       'joseramonmiranda@ivadsrl.com'
     ];
