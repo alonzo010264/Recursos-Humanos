@@ -34,7 +34,7 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:600;margin
   padding-bottom:24px;border-bottom:2px solid var(--ink);
 }
 @media(min-width:640px){.sheet__header{flex-direction:row;justify-content:space-between;align-items:flex-start}}
-.logo{height:64px;width:auto}
+.logo{height:64px;width:auto;max-width:100%;object-fit:contain}
 @media(min-width:640px){.logo{height:80px}}
 .title h1{font-size:30px}
 @media(min-width:640px){.title h1{font-size:36px;text-align:right}}
