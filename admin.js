@@ -31,8 +31,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       <tr>
         <td><strong>#${item.id}</strong></td>
         <td>
-          ${new Date(item.timestamp).toLocaleDateString('es-ES')}
-          <div class="text-sm">${new Date(item.timestamp).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})}</div>
+          ${new Date(item.timestamp || item.created_at || new Date()).toLocaleDateString('es-ES')}
+          <div class="text-sm">${new Date(item.timestamp || item.created_at || new Date()).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})}</div>
         </td>
         <td>
           <strong>${item.nombre}</strong>
@@ -72,5 +72,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.location.href = '/login';
   });
 
-  fetchSolicitudes();
+  fetchSolicitudes().then(() => {
+    // Inicializar Supabase para tiempo real (mismas credenciales públicas)
+    const supabaseUrl = 'https://rbtdahmhaksdvupsmkma.supabase.co';
+    const supabaseKey = 'sb_publishable_GP8roaav6iIHoQfFp7ncBg_slCdxC7S';
+    
+    if (window.supabase) {
+      const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+      
+      supabase
+        .channel('solicitudes_changes_web')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'solicitudes',
+          },
+          (payload) => {
+            solicitudes.unshift(payload.new);
+            renderTable(solicitudes);
+          }
+        )
+        .subscribe();
+    }
+  });
 });
