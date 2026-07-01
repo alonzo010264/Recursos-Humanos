@@ -150,7 +150,16 @@ app.post('/api/solicitud', async (req, res) => {
     }
 
     // 2. Lógica de Correos Múltiples (Fallbacks añadidos para Vercel)
-    const correosCompletos = process.env.CORREOS_DESTINO ? process.env.CORREOS_DESTINO.split(',') : ['tecnologia@ivadsrl.com'];
+    const correosPorDefecto = [
+      'logistica@ivadsrl.com',
+      'tecnologia@ivadsrl.com',
+      'myriamlaval@ivadsrl.com',
+      'decoracion@ivadsrl.com',
+      'desechable@ivadsrl.com',
+      'contabilidad@ivadsrl.com',
+      'joseramonmiranda@ivadsrl.com'
+    ];
+    const correosCompletos = process.env.CORREOS_DESTINO ? process.env.CORREOS_DESTINO.split(',') : correosPorDefecto;
     const correoTecnologia = process.env.CORREO_TECNOLOGIA || null;
     const correoOrigen = process.env.CORREO_ORIGEN || 'recursoshumanos@ivadsrl.com';
 
