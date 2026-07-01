@@ -52,8 +52,12 @@ const db = new sqlite3.Database(dbPath, (err) => {
       justificacion TEXT,
       reemplazo TEXT,
       contactoEmergencia TEXT,
+      descontarVacaciones TEXT,
       timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
+    )`, () => {
+      // Intentar agregar la columna por si la tabla ya existía de antes en local
+      db.run("ALTER TABLE solicitudes ADD COLUMN descontarVacaciones TEXT", () => {});
+    });
   }
 });
 
@@ -127,8 +131,8 @@ app.post('/api/solicitud', async (req, res) => {
     const totalCompleto = `${data.total} ${data.modalidad}`;
 
     // 1. Guardar en Base de Datos
-    const stmt = db.prepare(`INSERT INTO solicitudes (fecha, nombre, telefono, puesto, tipo, desde, hasta, hora, total, motivo, justificacion, reemplazo, contactoEmergencia) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-    stmt.run([data.fecha, data.nombre, data.telefono, data.puesto, tipoCompleto, data.desde, data.hasta, horaCompleta, totalCompleto, data.motivo, data.justificacion, data.reemplazo, data.contactoEmergencia]);
+    const stmt = db.prepare(`INSERT INTO solicitudes (fecha, nombre, telefono, puesto, tipo, desde, hasta, hora, total, motivo, justificacion, reemplazo, contactoEmergencia, descontarVacaciones) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+    stmt.run([data.fecha, data.nombre, data.telefono, data.puesto, tipoCompleto, data.desde, data.hasta, horaCompleta, totalCompleto, data.motivo, data.justificacion, data.reemplazo, data.contactoEmergencia, data.descontarVacaciones]);
     stmt.finalize();
 
     // 2. Lógica de Correos Múltiples
@@ -165,6 +169,7 @@ app.post('/api/solicitud', async (req, res) => {
           <p><strong>Teléfono:</strong> ${data.telefono}</p>
           <hr style="border: 0; border-top: 1px solid #eaeaea; margin: 15px 0;">
           <p><strong>Tipo de permiso:</strong> <span style="background: #e3f2fd; color: #1976d2; padding: 3px 8px; border-radius: 4px;">${tipoCompleto}</span></p>
+          <p><strong>¿Descontar de vacaciones?:</strong> <strong style="color: ${data.descontarVacaciones === 'Si' ? '#d32f2f' : '#388e3c'};">${data.descontarVacaciones === 'Si' ? 'Sí' : 'No'}</strong></p>
           <p><strong>Fechas:</strong> del ${data.desde} al ${data.hasta}</p>
           <p><strong>Horario:</strong> ${horaCompleta}</p>
           <p><strong>Total solicitado:</strong> ${totalCompleto}</p>

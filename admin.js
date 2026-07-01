@@ -45,6 +45,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         <td>
           <span class="badge">${item.tipo}</span>
           <div class="text-sm">${item.total} (${item.hora})</div>
+          ${item.descontarVacaciones ? `<div class="text-sm" style="margin-top:5px; color:${item.descontarVacaciones === 'Si' ? '#d32f2f' : '#388e3c'}; font-weight: 500;">
+            Vacaciones: ${item.descontarVacaciones === 'Si' ? 'Descontar' : 'No descontar'}
+          </div>` : ''}
         </td>
         <td style="max-width: 250px;">
           <div>${item.motivo}</div>
