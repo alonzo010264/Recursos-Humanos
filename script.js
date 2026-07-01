@@ -99,4 +99,12 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBtn.textContent = "ENVIAR SOLICITUD";
     checkValidity();
   });
+
+  // Utilidad para previsualizar la pantalla de éxito sin llenar el formulario
+  if (window.location.search.includes('preview=success')) {
+    form.hidden = true;
+    successDiv.hidden = false;
+    successName.textContent = 'Alonzo';
+    folio.textContent = 'REQ-7734';
+  }
 });
