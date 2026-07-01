@@ -63,8 +63,11 @@ try {
     }
   });
 } catch (sqliteError) {
-  console.log("SQLite no soportado en este entorno. Se ejecutará sin base de datos.");
+  console.log("SQLite no soportado en este entorno. Se usará base de datos en memoria.");
 }
+
+// Fallback temporal en memoria (útil para Vercel)
+const memoryDB = [];
 
 // Middleware de Autenticación
 function requireAuth(req, res, next) {
@@ -119,7 +122,7 @@ app.post('/api/logout', (req, res) => {
 // Endpoint para obtener los datos (solo admin)
 app.get('/api/solicitudes', requireAuth, (req, res) => {
   if (!db) {
-    return res.json({ data: [] });
+    return res.json({ data: memoryDB.slice().reverse() });
   }
   db.all(`SELECT * FROM solicitudes ORDER BY id DESC`, [], (err, rows) => {
     if (err) {
@@ -144,6 +147,26 @@ app.post('/api/solicitud', async (req, res) => {
         const stmt = db.prepare(`INSERT INTO solicitudes (fecha, nombre, telefono, puesto, tipo, desde, hasta, hora, total, motivo, justificacion, reemplazo, contactoEmergencia, descontarVacaciones) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
         stmt.run([data.fecha, data.nombre, data.telefono, data.puesto, tipoCompleto, data.desde, data.hasta, horaCompleta, totalCompleto, data.motivo, data.justificacion, data.reemplazo, data.contactoEmergencia, data.descontarVacaciones]);
         stmt.finalize();
+      } else {
+        // Guardar en memoria para Vercel si falló SQLite
+        memoryDB.push({
+          id: memoryDB.length + 1,
+          fecha: data.fecha,
+          nombre: data.nombre,
+          telefono: data.telefono,
+          puesto: data.puesto,
+          tipo: tipoCompleto,
+          desde: data.desde,
+          hasta: data.hasta,
+          hora: horaCompleta,
+          total: totalCompleto,
+          motivo: data.motivo,
+          justificacion: data.justificacion,
+          reemplazo: data.reemplazo,
+          contactoEmergencia: data.contactoEmergencia,
+          descontarVacaciones: data.descontarVacaciones,
+          timestamp: new Date().toISOString()
+        });
       }
     } catch (dbErr) {
       console.error("Error de base de datos en Vercel:", dbErr);
