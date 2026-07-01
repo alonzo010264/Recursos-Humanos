@@ -26,48 +26,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Intentar cargar SQLite de forma segura para evitar crasheos en Vercel
-let db = null;
-try {
-  const sqlite3 = require('sqlite3').verbose();
-  const dbPath = process.env.VERCEL || process.env.NODE_ENV === 'production' 
-    ? '/tmp/database.sqlite' 
-    : './database.sqlite';
+const { createClient } = require('@supabase/supabase-js');
 
-  db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-      console.error("Error al conectar con la base de datos", err.message);
-    } else {
-      console.log("Conectado a la base de datos SQLite en: " + dbPath);
-      db.run(`CREATE TABLE IF NOT EXISTS solicitudes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        fecha TEXT,
-        nombre TEXT,
-        telefono TEXT,
-        puesto TEXT,
-        tipo TEXT,
-        desde TEXT,
-        hasta TEXT,
-        hora TEXT,
-        total TEXT,
-        motivo TEXT,
-        justificacion TEXT,
-        reemplazo TEXT,
-        contactoEmergencia TEXT,
-        descontarVacaciones TEXT,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-      )`, () => {
-        // Intentar agregar la columna por si la tabla ya existía de antes en local
-        db.run("ALTER TABLE solicitudes ADD COLUMN descontarVacaciones TEXT", () => {});
-      });
-    }
-  });
-} catch (sqliteError) {
-  console.log("SQLite no soportado en este entorno. Se usará base de datos en memoria.");
-}
-
-// Fallback temporal en memoria (útil para Vercel)
-const memoryDB = [];
+// Configuración de Supabase
+const supabaseUrl = process.env.SUPABASE_URL || 'https://rbtdahmhaksdvupsmkma.supabase.co';
+const supabaseKey = process.env.SUPABASE_KEY || 'sb_publishable_GP8roaav6iIHoQfFp7ncBg_slCdxC7S';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Middleware de Autenticación
 function requireAuth(req, res, next) {
@@ -125,17 +89,17 @@ app.post('/api/logout', (req, res) => {
 });
 
 // Endpoint para obtener los datos (solo admin)
-app.get('/api/solicitudes', requireAuth, (req, res) => {
-  if (!db) {
-    return res.json({ data: memoryDB.slice().reverse() });
+app.get('/api/solicitudes', requireAuth, async (req, res) => {
+  const { data, error } = await supabase
+    .from('solicitudes')
+    .select('*')
+    .order('id', { ascending: false });
+    
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
   }
-  db.all(`SELECT * FROM solicitudes ORDER BY id DESC`, [], (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json({ data: rows });
-  });
+  res.json({ data });
 });
 
 // Ruta para recibir nuevas solicitudes
@@ -146,16 +110,11 @@ app.post('/api/solicitud', async (req, res) => {
     const horaCompleta = `${data.horaInicio} a ${data.horaFin}`;
     const totalCompleto = `${data.total} ${data.modalidad}`;
 
-    // 1. Guardar en Base de Datos (Seguro para Vercel)
+    // 1. Guardar en Base de Datos Supabase
     try {
-      if (db) {
-        const stmt = db.prepare(`INSERT INTO solicitudes (fecha, nombre, telefono, puesto, tipo, desde, hasta, hora, total, motivo, justificacion, reemplazo, contactoEmergencia, descontarVacaciones) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-        stmt.run([data.fecha, data.nombre, data.telefono, data.puesto, tipoCompleto, data.desde, data.hasta, horaCompleta, totalCompleto, data.motivo, data.justificacion, data.reemplazo, data.contactoEmergencia, data.descontarVacaciones]);
-        stmt.finalize();
-      } else {
-        // Guardar en memoria para Vercel si falló SQLite
-        memoryDB.push({
-          id: memoryDB.length + 1,
+      const { error: supabaseError } = await supabase
+        .from('solicitudes')
+        .insert([{
           fecha: data.fecha,
           nombre: data.nombre,
           telefono: data.telefono,
@@ -169,12 +128,14 @@ app.post('/api/solicitud', async (req, res) => {
           justificacion: data.justificacion,
           reemplazo: data.reemplazo,
           contactoEmergencia: data.contactoEmergencia,
-          descontarVacaciones: data.descontarVacaciones,
-          timestamp: new Date().toISOString()
-        });
+          descontarVacaciones: data.descontarVacaciones
+        }]);
+
+      if (supabaseError) {
+        console.error("Error al guardar en Supabase:", supabaseError);
       }
     } catch (dbErr) {
-      console.error("Error de base de datos en Vercel:", dbErr);
+      console.error("Error de conexión a Supabase:", dbErr);
     }
 
     // 2. Lógica de Correos Múltiples (Fallbacks añadidos para Vercel)
