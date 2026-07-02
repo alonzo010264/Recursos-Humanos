@@ -28,13 +28,13 @@
         <div class="form-group">
           <label>1. ¿Qué acción deseas realizar?</label>
           <div class="radio-group" id="tipoWrap">
-            <div class="radio-card active" data-v="ALTA">
+            <div class="radio-card active" id="cardALTA" onclick="selectTipo('ALTA')">
               <div>
                 <span class="rc-title">Nuevo Correo (Alta)</span>
-                <span class="rc-desc">Crear un correo para un nuevo empleado o departamento.</span>
+                <span class="rc-desc">Crear un correo para un empleado o departamento.</span>
               </div>
             </div>
-            <div class="radio-card" data-v="BAJA">
+            <div class="radio-card" id="cardBAJA" onclick="selectTipo('BAJA')">
               <div>
                 <span class="rc-title">Eliminar Correo (Baja)</span>
                 <span class="rc-desc">Dar de baja un correo sin uso para evitar cobros.</span>
@@ -101,32 +101,31 @@
   <script>
     const $ = id => document.getElementById(id);
     
-    const radioCards = document.querySelectorAll('.radio-card');
     let tipoActual = 'ALTA';
 
-    radioCards.forEach(card => {
-      card.addEventListener('click', function(e) {
-        // Force active state
-        radioCards.forEach(c => c.classList.remove('active'));
-        this.classList.add('active');
-        tipoActual = this.getAttribute('data-v');
-        
-        // Update dynamic texts
-        if (tipoActual === 'BAJA') {
-          $('passwordGroup').style.display = 'none';
-          $('lblCorreo').textContent = '4. Correo a Eliminar';
-          $('correo_sugerido').placeholder = 'Ej. jperez@ivad.com';
-          $('lblJustificacion').textContent = '5. Motivo de la Baja';
-          $('justificacion').placeholder = 'Explique por qué este correo ya no se utiliza...';
-        } else {
-          $('passwordGroup').style.display = 'block';
-          $('lblCorreo').textContent = '4. Correo Sugerido';
-          $('correo_sugerido').placeholder = 'Ej. jperez@ivad.com';
-          $('lblJustificacion').textContent = '6. Justificación de la Solicitud';
-          $('justificacion').placeholder = 'Explique por qué se necesita crear este correo...';
-        }
-      });
-    });
+    function selectTipo(tipo) {
+      tipoActual = tipo;
+      
+      // Cambiar clases activas
+      $('cardALTA').classList.remove('active');
+      $('cardBAJA').classList.remove('active');
+      $('card' + tipo).classList.add('active');
+      
+      // Update dynamic texts
+      if (tipo === 'BAJA') {
+        $('passwordGroup').style.display = 'none';
+        $('lblCorreo').textContent = '4. Correo a Eliminar';
+        $('correo_sugerido').placeholder = 'Ej. jperez@ivad.com';
+        $('lblJustificacion').textContent = '5. Motivo de la Baja';
+        $('justificacion').placeholder = 'Explique por qué este correo ya no se utiliza...';
+      } else {
+        $('passwordGroup').style.display = 'block';
+        $('lblCorreo').textContent = '4. Correo Sugerido';
+        $('correo_sugerido').placeholder = 'Ej. jperez@ivad.com';
+        $('lblJustificacion').textContent = '6. Justificación de la Solicitud';
+        $('justificacion').placeholder = 'Explique por qué se necesita crear este correo...';
+      }
+    }
 
     // Supabase
     const supabaseUrl = 'https://rbtdahmhaksdvupsmkma.supabase.co';
