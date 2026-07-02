@@ -1,15 +1,15 @@
 :root {
-  --bg: #faf9f5;
+  --bg: #f8fafc;
   --card: #ffffff;
-  --ink: #101a3a;
-  --ink-soft: #6b6f7d;
-  --rule: #e5e7eb;
-  --primary: #d4af37;
-  --primary-hover: #b8972e;
-  --danger: #dc2626;
-  --success: #16a34a;
+  --ink: #0f172a;
+  --ink-soft: #64748b;
+  --rule: #e2e8f0;
+  --primary: #0f172a;
+  --primary-hover: #1e293b;
+  --danger: #ef4444;
+  --success: #22c55e;
   --radius: 12px;
-  --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+  --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
