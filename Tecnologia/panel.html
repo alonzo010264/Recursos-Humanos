@@ -107,18 +107,46 @@
     let sugerencias = [];
 
     async function loadData() {
-      const [resCorreos, resSug] = await Promise.all([
-        supabase.from('gestion_correos').select('*').order('created_at', { ascending: false }),
-        supabase.from('sugerencias_empleados').select('*').order('created_at', { ascending: false })
-      ]);
+      try {
+        const [resCorreos, resSug] = await Promise.all([
+          supabase.from('gestion_correos').select('*').order('created_at', { ascending: false }),
+          supabase.from('sugerencias_empleados').select('*').order('created_at', { ascending: false })
+        ]);
 
-      if (resCorreos.error) console.error("Error correos:", resCorreos.error);
-      else correos = resCorreos.data || [];
+        if (resCorreos.error) {
+          console.error("Error correos:", resCorreos.error);
+          $('correosBody').innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 30px; color:var(--danger);">Error de base de datos: ${resCorreos.error.message}. Asegúrate de haber creado la tabla en Supabase.</td></tr>`;
+        } else {
+          correos = resCorreos.data || [];
+        }
 
-      if (resSug.error) console.error("Error sugerencias:", resSug.error);
-      else sugerencias = resSug.data || [];
+        if (resSug.error) {
+          console.error("Error sugerencias:", resSug.error);
+          $('buzonBody').innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 30px; color:var(--danger);">Error de base de datos: ${resSug.error.message}. Asegúrate de haber creado la tabla en Supabase.</td></tr>`;
+        } else {
+          sugerencias = resSug.data || [];
+        }
 
-      render();
+        // Si al menos una consulta fue exitosa, renderizamos
+        if (!resCorreos.error || !resSug.error) {
+          render();
+        }
+      } catch (err) {
+        console.error("Error de conexión:", err);
+        const errorHtml = `
+          <tr>
+            <td colspan="8" style="text-align:center; padding: 30px; color:var(--danger);">
+              <strong>Error de conexión o bloqueo de seguridad (CORS).</strong><br/>
+              <span style="font-size:12px; color:var(--ink-soft);">
+                Si abriste este archivo con doble clic directo desde tu PC, el navegador bloquea la conexión por seguridad.<br/>
+                Para verlo funcionar: <strong>súbelo a GitHub y pruébalo desde el enlace de internet</strong> o usa un servidor local.
+              </span>
+            </td>
+          </tr>
+        `;
+        $('correosBody').innerHTML = errorHtml;
+        $('buzonBody').innerHTML = errorHtml.replace('colspan="8"', 'colspan="6"');
+      }
     }
 
     function render() {
