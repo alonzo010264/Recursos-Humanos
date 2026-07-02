@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IVAD · Panel de Resultados</title>
+  <meta name="description" content="Panel público en tiempo real de la encuesta de satisfacción de IVAD Home & Goods." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main>
+    <div class="container-wide">
+      <div class="card">
+        <div class="panel-header">
+          <div class="left">
+            <img src="ivad-logo.png" alt="IVAD Home & Goods" />
+            <div>
+              <h1>Panel de resultados</h1>
+              <p class="sub">IVAD Home & Goods · Encuesta de satisfacción</p>
+            </div>
+          </div>
+          <div class="live-dot">En vivo</div>
+        </div>
+
+        <div id="content">
+          <!-- Empty state -->
+          <div class="empty" id="empty" hidden>
+            <p class="t">Sin encuestas todavía</p>
+            <p class="s">Comparte el formulario para empezar a recibir opiniones.</p>
+          </div>
+
+          <div id="dashboard" hidden>
+            <!-- KPIs -->
+            <div class="kpis">
+              <div class="kpi">
+                <div class="label">Total de encuestas</div>
+                <div class="val" id="kpiTotal">0</div>
+                <div class="hint">respuestas recibidas</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Calificación promedio</div>
+                <div class="val" id="kpiAvg">0.0</div>
+                <div class="hint">de 5 estrellas</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Recomendación</div>
+                <div class="val" id="kpiRec">0%</div>
+                <div class="hint">clientes que sí recomiendan</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Satisfacción</div>
+                <div class="val" id="kpiSat">0%</div>
+                <div class="hint">calificación ≥ 4 estrellas</div>
+              </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid-charts">
+              <div class="chart-card">
+                <h3>Distribución de calificaciones</h3>
+                <p class="desc">Número de encuestas por cada nivel de la escala.</p>
+                <div class="bars" id="bars"></div>
+              </div>
+
+              <div class="chart-card">
+                <h3>¿Nos recomendarían?</h3>
+                <p class="desc">Porcentaje de clientes que sí nos recomendarían.</p>
+                <div class="donut-wrap">
+                  <div class="donut">
+                    <svg width="160" height="160" viewBox="0 0 160 160">
+                      <circle cx="80" cy="80" r="60" fill="none" stroke="#ece7db" stroke-width="22"/>
+                      <circle id="donut" cx="80" cy="80" r="60" fill="none" stroke="#101a3a" stroke-width="22"
+                              stroke-dasharray="0 377" stroke-linecap="butt"/>
+                    </svg>
+                    <div class="center">
+                      <div class="p" id="donutPct">0%</div>
+                      <div class="l">Sí recomienda</div>
+                    </div>
+                  </div>
+                  <div class="legend">
+                    <div class="item"><span class="sw" style="background:#101a3a"></span> Sí <span class="n" id="legSi">0</span></div>
+                    <div class="item"><span class="sw" style="background:#ece7db;border:1px solid #d9d4c7"></span> No <span class="n" id="legNo">0</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comments -->
+            <div class="chart-card" style="margin-top: 18px;">
+              <h3>Comentarios recientes</h3>
+              <p class="desc">Últimas opiniones recibidas de nuestros clientes.</p>
+              <div class="comments" id="comments"></div>
+            </div>
+
+            <!-- Tabla completa -->
+            <div class="chart-card" style="margin-top: 18px;">
+              <h3>Todas las respuestas</h3>
+              <p class="desc">Historial completo. Puedes eliminar encuestas de prueba aquí.</p>
+              <div style="overflow-x: auto; margin-top: 10px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                  <thead>
+                    <tr style="border-bottom: 2px solid var(--rule);">
+                      <th style="padding: 10px;">Fecha</th>
+                      <th style="padding: 10px;">Cliente</th>
+                      <th style="padding: 10px;">Calificación</th>
+                      <th style="padding: 10px;">Recomienda</th>
+                      <th style="padding: 10px;">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tableBody">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const starSVG = '<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.6 7.1.7-5.4 4.9 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.8l7.1-.7L12 2.5z"/></svg>';
+
+    const supabaseUrl = 'https://rbtdahmhaksdvupsmkma.supabase.co';
+    const supabaseKey = 'sb_publishable_GP8roaav6iIHoQfFp7ncBg_slCdxC7S';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    let rows = [];
+
+    async function fetchSurveys() {
+      const { data, error } = await supabase
+        .from('satisfaccion')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching surveys:', error);
+        return;
+      }
+      rows = data || [];
+      render();
+    }
+
+    function fmt(d) {
+      try {
+        return new Date(d).toLocaleDateString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+      } catch (_) { return d; }
+    }
+
+    function render() {
+      if (!rows.length) {
+        $("empty").hidden = false;
+        $("dashboard").hidden = true;
+        return;
+      }
+      $("empty").hidden = true;
+      $("dashboard").hidden = false;
+
+      const total = rows.length;
+      const sumCal = rows.reduce((a, r) => a + Number(r.calificacion || 0), 0);
+      const avg = sumCal / total;
+      const rec = rows.filter((r) => r.recomienda).length;
+      const sat = rows.filter((r) => Number(r.calificacion) >= 4).length;
+
+      $("kpiTotal").textContent = total;
+      $("kpiAvg").textContent = avg.toFixed(1);
+      $("kpiRec").textContent = Math.round((rec / total) * 100) + "%";
+      $("kpiSat").textContent = Math.round((sat / total) * 100) + "%";
+
+      // Bars
+      const labels = { 5: "5 · Excepcional", 4: "4 · Muy bueno", 3: "3 · Bueno", 2: "2 · Regular", 1: "1 · Mal serv." };
+      const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+      rows.forEach((r) => { counts[r.calificacion] = (counts[r.calificacion] || 0) + 1; });
+      const max = Math.max(...Object.values(counts), 1);
+      const bars = $("bars");
+      bars.innerHTML = "";
+      [5, 4, 3, 2, 1].forEach((k) => {
+        const pct = (counts[k] / max) * 100;
+        bars.insertAdjacentHTML("beforeend",
+          `<div class="bar-row">
+            <span class="lbl">${labels[k]}</span>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+            <span class="n">${counts[k]}</span>
+          </div>`
+        );
+      });
+
+      // Donut
+      const pctRec = rec / total;
+      const C = 2 * Math.PI * 60; // ≈ 377
+      $("donut").setAttribute("stroke-dasharray", `${(pctRec * C).toFixed(2)} ${C.toFixed(2)}`);
+      $("donutPct").textContent = Math.round(pctRec * 100) + "%";
+      $("legSi").textContent = rec;
+      $("legNo").textContent = total - rec;
+
+      // Comments
+      const box = $("comments");
+      box.innerHTML = "";
+      rows.slice(0, 8).forEach((r) => {
+        const stars = [1, 2, 3, 4, 5].map((n) =>
+          `<span class="${n <= r.calificacion ? "on" : "off"}">${starSVG}</span>`
+        ).join("");
+        box.insertAdjacentHTML("beforeend",
+          `<div class="comment">
+            <div class="top">
+              <div>
+                <span class="name">${escapeHtml(r.nombre || "Cliente anónimo")}</span>
+                <span class="stars-inline" style="margin-left:10px;vertical-align:middle;">${stars}</span>
+              </div>
+              <span class="date">${fmt(r.created_at)}</span>
+            </div>
+            <div class="body">
+              ${r.porque ? escapeHtml(r.porque) : ""}
+              ${r.mejora ? `<div style="margin-top:6px;"><em>Sugerencia:</em> ${escapeHtml(r.mejora)}</div>` : ""}
+            </div>
+          </div>`
+        );
+      });
+
+      // Table
+      const tbody = $("tableBody");
+      tbody.innerHTML = "";
+      rows.forEach((r) => {
+        const tr = document.createElement("tr");
+        tr.style.borderBottom = "1px solid var(--rule)";
+        tr.innerHTML = `
+          <td style="padding: 10px;">${fmt(r.created_at)}</td>
+          <td style="padding: 10px;">
+            <strong>${escapeHtml(r.nombre || "Anónimo")}</strong>
+            ${r.telefono ? `<br/><span style="color:var(--muted);font-size:12px">${escapeHtml(r.telefono)}</span>` : ""}
+          </td>
+          <td style="padding: 10px;">${r.calificacion}/5</td>
+          <td style="padding: 10px;">
+            <span style="display:inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; background: ${r.recomienda ? 'var(--success)' : 'var(--danger)'}; color: white;">
+              ${r.recomienda ? 'Sí' : 'No'}
+            </span>
+          </td>
+          <td style="padding: 10px;">
+            <button onclick="deleteRow('${r.id}')" style="background: none; border: 1px solid var(--danger); color: var(--danger); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Borrar</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    window.deleteRow = async function(id) {
+      if (!confirm("¿Seguro que deseas eliminar esta encuesta? Esta acción no se puede deshacer.")) return;
+      
+      const { error } = await supabase.from('satisfaccion').delete().eq('id', id);
+      if (error) {
+        alert("Error al eliminar la encuesta: " + error.message);
+      } else {
+        // Optimistic update
+        rows = rows.filter(r => r.id !== id);
+        render();
+      }
+    };
+
+    // Cargar encuestas inicialmente
+    fetchSurveys();
+
+    // Suscribirse a cambios en tiempo real
+    supabase
+      .channel('satisfaccion_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'satisfaccion',
+        },
+        (payload) => {
+          rows.unshift(payload.new);
+          render();
+        }
+      )
+      .subscribe();
+  </script>
+</body>
+</html>
