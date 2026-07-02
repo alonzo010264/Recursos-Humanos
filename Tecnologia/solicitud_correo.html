@@ -48,40 +48,71 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <label for="nombre">2. Nombre del Colaborador o Área</label>
-          <input type="text" id="nombre" class="form-control" placeholder="Ej. Juan Pérez / Contabilidad" required />
+        <!-- PREGUNTAS PARA NUEVO CORREO (ALTA) -->
+        <div id="seccionAlta">
+          <div class="form-group">
+            <label for="alta_nombre">2. Nombre del Colaborador o Área</label>
+            <input type="text" id="alta_nombre" class="form-control" placeholder="Ej. Juan Pérez / Contabilidad" />
+          </div>
+
+          <div class="form-group">
+            <label for="alta_departamento">3. Departamento</label>
+            <select id="alta_departamento" class="form-control">
+              <option value="" disabled selected>Seleccione un departamento...</option>
+              <option value="Ventas">Ventas</option>
+              <option value="Logística">Logística / Almacén</option>
+              <option value="Administración">Administración / Contabilidad</option>
+              <option value="Recursos Humanos">Recursos Humanos</option>
+              <option value="Atención al Cliente">Atención al Cliente</option>
+              <option value="Gerencia">Gerencia</option>
+              <option value="Tecnología">Tecnología e Informática</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="alta_correo">4. Correo Sugerido</label>
+            <input type="email" id="alta_correo" class="form-control" placeholder="Ej. jperez@ivad.com" />
+          </div>
+
+          <div class="form-group">
+            <label for="alta_contrasena">5. Contraseña Sugerida (Para configuración por TI)</label>
+            <input type="text" id="alta_contrasena" class="form-control" placeholder="Recomendamos dejar la clave genérica para configurar firmas" />
+            <span class="hint">Al proporcionarla, TI podrá configurar automáticamente las firmas empresariales sin intervenir físicamente la PC del usuario. El usuario podrá cambiarla después.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="alta_justificacion">6. Justificación de la Solicitud</label>
+            <textarea id="alta_justificacion" class="form-control" placeholder="Explique por qué se necesita crear este correo..."></textarea>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="departamento">3. Departamento</label>
-          <select id="departamento" class="form-control" required>
-            <option value="" disabled selected>Seleccione un departamento...</option>
-            <option value="Ventas">Ventas</option>
-            <option value="Logística">Logística / Almacén</option>
-            <option value="Administración">Administración / Contabilidad</option>
-            <option value="Recursos Humanos">Recursos Humanos</option>
-            <option value="Atención al Cliente">Atención al Cliente</option>
-            <option value="Gerencia">Gerencia</option>
-            <option value="Tecnología">Tecnología e Informática</option>
-            <option value="Otro">Otro</option>
-          </select>
-        </div>
+        <!-- PREGUNTAS PARA ELIMINAR CORREO (BAJA) -->
+        <div id="seccionBaja" style="display: none;">
+          <div class="form-group">
+            <label for="baja_correo">2. Correo Empresarial a Eliminar</label>
+            <input type="email" id="baja_correo" class="form-control" placeholder="Ej. ex-empleado@ivad.com" />
+          </div>
 
-        <div class="form-group">
-          <label for="correo_sugerido" id="lblCorreo">4. Correo Sugerido</label>
-          <input type="email" id="correo_sugerido" class="form-control" placeholder="Ej. jperez@ivad.com" required />
-        </div>
+          <div class="form-group">
+            <label for="baja_departamento">3. Departamento al que pertenecía</label>
+            <select id="baja_departamento" class="form-control">
+              <option value="" disabled selected>Seleccione un departamento...</option>
+              <option value="Ventas">Ventas</option>
+              <option value="Logística">Logística / Almacén</option>
+              <option value="Administración">Administración / Contabilidad</option>
+              <option value="Recursos Humanos">Recursos Humanos</option>
+              <option value="Atención al Cliente">Atención al Cliente</option>
+              <option value="Gerencia">Gerencia</option>
+              <option value="Tecnología">Tecnología e Informática</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
 
-        <div class="form-group" id="passwordGroup">
-          <label for="contrasena">5. Contraseña Sugerida (Para configuración por TI)</label>
-          <input type="text" id="contrasena" class="form-control" placeholder="Recomendamos dejar la clave genérica para configurar firmas" />
-          <span class="hint">Al proporcionarla, TI podrá configurar automáticamente las firmas empresariales sin intervenir físicamente la PC del usuario. El usuario podrá cambiarla después.</span>
-        </div>
-
-        <div class="form-group">
-          <label for="justificacion" id="lblJustificacion">6. Justificación de la Solicitud</label>
-          <textarea id="justificacion" class="form-control" placeholder="Explique por qué se necesita crear este correo..." required></textarea>
+          <div class="form-group">
+            <label for="baja_motivo">4. Motivo de la Eliminación (Baja)</label>
+            <textarea id="baja_motivo" class="form-control" placeholder="Ej. El empleado renunció, el correo ya no se usa y genera gastos, etc."></textarea>
+          </div>
         </div>
 
         <button type="submit" class="btn" id="submitBtn">Enviar Solicitud a Tecnología</button>
@@ -112,17 +143,11 @@
       tipoActual = tipo;
       
       if (tipo === 'BAJA') {
-        $('passwordGroup').style.display = 'none';
-        $('lblCorreo').textContent = '4. Correo a Eliminar';
-        $('correo_sugerido').placeholder = 'Ej. jperez@ivad.com';
-        $('lblJustificacion').textContent = '5. Motivo de la Baja';
-        $('justificacion').placeholder = 'Explique por qué este correo ya no se utiliza...';
+        $('seccionAlta').style.display = 'none';
+        $('seccionBaja').style.display = 'block';
       } else {
-        $('passwordGroup').style.display = 'block';
-        $('lblCorreo').textContent = '4. Correo Sugerido';
-        $('correo_sugerido').placeholder = 'Ej. jperez@ivad.com';
-        $('lblJustificacion').textContent = '6. Justificación de la Solicitud';
-        $('justificacion').placeholder = 'Explique por qué se necesita crear este correo...';
+        $('seccionAlta').style.display = 'block';
+        $('seccionBaja').style.display = 'none';
       }
     }
 
@@ -134,6 +159,19 @@
     $('correoForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
+      // Validar campos según el tipo
+      if (tipoActual === 'ALTA') {
+        if (!$('alta_nombre').value || !$('alta_departamento').value || !$('alta_correo').value || !$('alta_justificacion').value) {
+          alert("Por favor complete todos los campos obligatorios para Nuevo Correo.");
+          return;
+        }
+      } else {
+        if (!$('baja_correo').value || !$('baja_departamento').value || !$('baja_motivo').value) {
+          alert("Por favor complete todos los campos obligatorios para Eliminar Correo.");
+          return;
+        }
+      }
+      
       const btn = $('submitBtn');
       const err = $('errorMsg');
       btn.disabled = true;
@@ -142,16 +180,30 @@
 
       const folio = "TI-EM-" + Math.random().toString(36).slice(2, 7).toUpperCase();
 
-      const payload = {
-        folio: folio,
-        tipo: tipoActual,
-        nombre: $('nombre').value.trim(),
-        departamento: $('departamento').value,
-        correo_sugerido: $('correo_sugerido').value.trim(),
-        contrasena: $('contrasena').value.trim(),
-        justificacion: $('justificacion').value.trim(),
-        estado: 'PENDIENTE'
-      };
+      let payload = {};
+      if (tipoActual === 'ALTA') {
+        payload = {
+          folio: folio,
+          tipo: tipoActual,
+          nombre: $('alta_nombre').value.trim(),
+          departamento: $('alta_departamento').value,
+          correo_sugerido: $('alta_correo').value.trim(),
+          contrasena: $('alta_contrasena').value.trim(),
+          justificacion: $('alta_justificacion').value.trim(),
+          estado: 'PENDIENTE'
+        };
+      } else {
+        payload = {
+          folio: folio,
+          tipo: tipoActual,
+          nombre: 'BAJA DE CORREO', // No aplica un nombre de empleado nuevo
+          departamento: $('baja_departamento').value,
+          correo_sugerido: $('baja_correo').value.trim(),
+          contrasena: '',
+          justificacion: $('baja_motivo').value.trim(),
+          estado: 'PENDIENTE'
+        };
+      }
 
       try {
         const { error } = await supabase.from('gestion_correos').insert([payload]);
