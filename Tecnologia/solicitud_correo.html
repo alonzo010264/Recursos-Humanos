@@ -174,7 +174,9 @@
 
     $('againBtn').addEventListener('click', () => {
       $('correoForm').reset();
-      radioCards[0].click(); // Reset to ALTA
+      // Select the first radio input directly
+      document.querySelector('input[value="ALTA"]').checked = true;
+      cambiarTipo('ALTA');
       $('successContainer').hidden = true;
       $('formContainer').hidden = false;
       window.scrollTo({ top: 0, behavior: 'smooth' });
