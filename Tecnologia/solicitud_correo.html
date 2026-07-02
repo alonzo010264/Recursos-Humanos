@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IVAD · Solicitud de Correos</title>
+  <meta name="description" content="Gestión de Correos Empresariales - Departamento de Tecnología IVAD" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="page-header">
+    <img src="ivad-logo.png" alt="IVAD Home & Goods" />
+    <div class="dept-tag">Tecnología e Informática</div>
+  </header>
+
+  <main class="container">
+    <div class="form-card" id="formContainer">
+      <h1>Gestión de Correos Empresariales</h1>
+      <p class="desc">Formulario oficial para solicitar la creación o eliminación de cuentas de correo de la empresa. Las solicitudes serán gestionadas por Tecnología en coordinación con Gerencia.</p>
+      
+      <div id="errorMsg" style="display:none; background:var(--danger); color:white; padding:12px; border-radius:6px; margin-bottom:20px; font-size:14px;"></div>
+
+      <form id="correoForm">
+        
+        <div class="form-group">
+          <label>1. ¿Qué acción deseas realizar?</label>
+          <div class="radio-group" id="tipoWrap">
+            <label class="radio-card active" data-v="ALTA">
+              <input type="radio" name="tipo" value="ALTA" checked style="display:none;">
+              <div>
+                <span class="rc-title">Nuevo Correo (Alta)</span>
+                <span class="rc-desc">Crear un correo para un nuevo empleado o nuevo departamento.</span>
+              </div>
+            </label>
+            <label class="radio-card" data-v="BAJA">
+              <input type="radio" name="tipo" value="BAJA" style="display:none;">
+              <div>
+                <span class="rc-title">Eliminar Correo (Baja)</span>
+                <span class="rc-desc">Dar de baja un correo sin uso para evitar cobros innecesarios de licencias.</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="nombre">2. Nombre del Colaborador o Área</label>
+          <input type="text" id="nombre" class="form-control" placeholder="Ej. Juan Pérez / Contabilidad" required />
+        </div>
+
+        <div class="form-group">
+          <label for="departamento">3. Departamento</label>
+          <select id="departamento" class="form-control" required>
+            <option value="" disabled selected>Seleccione un departamento...</option>
+            <option value="Ventas">Ventas</option>
+            <option value="Logística">Logística / Almacén</option>
+            <option value="Administración">Administración / Contabilidad</option>
+            <option value="Recursos Humanos">Recursos Humanos</option>
+            <option value="Atención al Cliente">Atención al Cliente</option>
+            <option value="Gerencia">Gerencia</option>
+            <option value="Tecnología">Tecnología e Informática</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="correo_sugerido">4. Correo Sugerido / Correo a Eliminar</label>
+          <input type="email" id="correo_sugerido" class="form-control" placeholder="Ej. jperez@ivad.com" required />
+        </div>
+
+        <div class="form-group" id="passwordGroup">
+          <label for="contrasena">5. Contraseña Sugerida (Para configuración por TI)</label>
+          <input type="text" id="contrasena" class="form-control" placeholder="Recomendamos dejar la clave genérica para configurar firmas" />
+          <span class="hint">Al proporcionarla, TI podrá configurar automáticamente las firmas empresariales sin intervenir físicamente la PC del usuario. El usuario podrá cambiarla después.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="justificacion">6. Justificación de la Solicitud</label>
+          <textarea id="justificacion" class="form-control" placeholder="Explique por qué se necesita crear este correo o por qué se está dando de baja..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn" id="submitBtn">Enviar Solicitud a Tecnología</button>
+      </form>
+    </div>
+
+    <!-- Pantalla de Éxito -->
+    <div class="form-card success-state" id="successContainer" hidden>
+      <h2>¡Solicitud Recibida!</h2>
+      <p>El departamento de Tecnología e Informática ha recibido su solicitud. Se coordinará con gerencia para su aprobación y ejecución.</p>
+      
+      <p style="margin-bottom: 10px; font-size: 13px; font-weight: bold;">Folio de Seguimiento:</p>
+      <div class="folio-box" id="folioNum"></div>
+      
+      <div>
+        <button class="btn" id="againBtn" style="width: auto;">Hacer otra solicitud</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+    
+    // UI Logic
+    const radioCards = document.querySelectorAll('.radio-card');
+    let tipoActual = 'ALTA';
+
+    radioCards.forEach(card => {
+      card.addEventListener('click', () => {
+        radioCards.forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        tipoActual = card.dataset.v;
+        
+        // Hide password field if it's a deletion
+        $('passwordGroup').style.display = tipoActual === 'BAJA' ? 'none' : 'block';
+      });
+    });
+
+    // Supabase
+    const supabaseUrl = 'https://rbtdahmhaksdvupsmkma.supabase.co';
+    const supabaseKey = 'sb_publishable_GP8roaav6iIHoQfFp7ncBg_slCdxC7S';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    $('correoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const btn = $('submitBtn');
+      const err = $('errorMsg');
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+      err.style.display = 'none';
+
+      const folio = "TI-EM-" + Math.random().toString(36).slice(2, 7).toUpperCase();
+
+      const payload = {
+        folio: folio,
+        tipo: tipoActual,
+        nombre: $('nombre').value.trim(),
+        departamento: $('departamento').value,
+        correo_sugerido: $('correo_sugerido').value.trim(),
+        contrasena: $('contrasena').value.trim(),
+        justificacion: $('justificacion').value.trim(),
+        estado: 'PENDIENTE'
+      };
+
+      try {
+        const { error } = await supabase.from('gestion_correos').insert([payload]);
+        if (error) throw error;
+
+        // Success
+        $('formContainer').hidden = true;
+        $('folioNum').textContent = folio;
+        $('successContainer').hidden = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (error) {
+        console.error(error);
+        err.textContent = 'Ocurrió un error al enviar la solicitud. Verifica tu conexión o intenta más tarde.';
+        err.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Enviar Solicitud a Tecnología';
+      }
+    });
+
+    $('againBtn').addEventListener('click', () => {
+      $('correoForm').reset();
+      radioCards[0].click(); // Reset to ALTA
+      $('successContainer').hidden = true;
+      $('formContainer').hidden = false;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  </script>
+</body>
+</html>
