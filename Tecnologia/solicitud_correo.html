@@ -101,15 +101,16 @@
   <script>
     const $ = id => document.getElementById(id);
     
-    // UI Logic
     const radioCards = document.querySelectorAll('.radio-card');
     let tipoActual = 'ALTA';
 
     radioCards.forEach(card => {
-      card.addEventListener('click', () => {
+      card.addEventListener('click', function(e) {
+        // Force active state
         radioCards.forEach(c => c.classList.remove('active'));
-        card.classList.add('active');
-        tipoActual = card.dataset.v;
+        this.classList.add('active');
+        tipoActual = this.getAttribute('data-v');
+        
         // Update dynamic texts
         if (tipoActual === 'BAJA') {
           $('passwordGroup').style.display = 'none';
