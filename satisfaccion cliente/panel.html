@@ -139,8 +139,20 @@
     let rows = [];
     let barChartInst, donutChartInst, lineChartInst;
 
-    Chart.defaults.font.family = "'Inter', sans-serif";
-    Chart.defaults.color = "#6b6f7d";
+    // ERROR HANDLER para mostrar errores en pantalla y poder debuggear
+    window.addEventListener('error', function(e) {
+      document.body.insertAdjacentHTML('afterbegin', '<div style="background:red;color:white;padding:20px;z-index:9999;position:relative;">JS ERROR: ' + e.message + ' en la línea ' + e.lineno + '</div>');
+    });
+    window.addEventListener('unhandledrejection', function(e) {
+      document.body.insertAdjacentHTML('afterbegin', '<div style="background:red;color:white;padding:20px;z-index:9999;position:relative;">PROMISE ERROR: ' + e.reason + '</div>');
+    });
+
+    try {
+      if (typeof Chart !== 'undefined') {
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = "#6b6f7d";
+      }
+    } catch(err) {}
 
     async function fetchSurveys() {
       const { data, error } = await supabase
@@ -163,6 +175,10 @@
     }
 
     function initCharts() {
+      if (typeof Chart === 'undefined') {
+        console.error("Chart.js no está cargado.");
+        return;
+      }
       const ctxBar = document.getElementById('barChart').getContext('2d');
       barChartInst = new Chart(ctxBar, {
         type: 'bar',
@@ -232,45 +248,51 @@
       $("kpiSatPct").textContent = Math.round((sat / total) * 100) + "%";
 
       // Update Bar Chart
-      const counts = [0,0,0,0,0];
-      rows.forEach(r => { if(r.calificacion >=1 && r.calificacion<=5) counts[r.calificacion-1]++; });
-      barChartInst.data.datasets[0].data = counts;
-      barChartInst.update();
+      if (barChartInst) {
+        const counts = [0,0,0,0,0];
+        rows.forEach(r => { if(r.calificacion >=1 && r.calificacion<=5) counts[r.calificacion-1]++; });
+        barChartInst.data.datasets[0].data = counts;
+        barChartInst.update();
+      }
 
       // Update Donut
-      donutChartInst.data.datasets[0].data = [rec, total - rec];
-      donutChartInst.update();
+      if (donutChartInst) {
+        donutChartInst.data.datasets[0].data = [rec, total - rec];
+        donutChartInst.update();
+      }
 
       // Update Line Chart (Last 14 days)
-      const days = {};
-      for (let i=13; i>=0; i--) {
-        const d = new Date(); d.setDate(d.getDate() - i);
-        const iso = d.toISOString().split('T')[0];
-        const fmtDay = d.toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
-        days[iso] = { label: fmtDay, sum: 0, count: 0 };
-      }
-      
-      rows.forEach(r => {
-        let rd = r.fecha;
-        if(!rd && r.created_at) rd = r.created_at.split('T')[0];
-        if (days[rd]) {
-          days[rd].sum += Number(r.calificacion);
-          days[rd].count++;
+      if (lineChartInst) {
+        const days = {};
+        for (let i=13; i>=0; i--) {
+          const d = new Date(); d.setDate(d.getDate() - i);
+          const iso = d.toISOString().split('T')[0];
+          const fmtDay = d.toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
+          days[iso] = { label: fmtDay, sum: 0, count: 0 };
         }
-      });
+        
+        rows.forEach(r => {
+          let rd = r.fecha;
+          if(!rd && r.created_at) rd = r.created_at.split('T')[0];
+          if (days[rd]) {
+            days[rd].sum += Number(r.calificacion);
+            days[rd].count++;
+          }
+        });
 
-      const lineLabels = [];
-      const lineAvgs = [];
-      const lineCounts = [];
-      Object.values(days).forEach(val => {
-        lineLabels.push(val.label);
-        lineAvgs.push(val.count > 0 ? val.sum / val.count : null); // null doesn't plot point
-        lineCounts.push(val.count);
-      });
-      lineChartInst.data.labels = lineLabels;
-      lineChartInst.data.datasets[0].data = lineAvgs;
-      lineChartInst.data.datasets[1].data = lineCounts;
-      lineChartInst.update();
+        const lineLabels = [];
+        const lineAvgs = [];
+        const lineCounts = [];
+        Object.values(days).forEach(val => {
+          lineLabels.push(val.label);
+          lineAvgs.push(val.count > 0 ? val.sum / val.count : null);
+          lineCounts.push(val.count);
+        });
+        lineChartInst.data.labels = lineLabels;
+        lineChartInst.data.datasets[0].data = lineAvgs;
+        lineChartInst.data.datasets[1].data = lineCounts;
+        lineChartInst.update();
+      }
 
       // Comments List
       const box = $("comments");
