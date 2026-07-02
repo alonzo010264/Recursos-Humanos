@@ -28,18 +28,23 @@
         <div class="form-group">
           <label>1. ¿Qué acción deseas realizar?</label>
           <div class="radio-group" id="tipoWrap">
-            <div class="radio-card active" id="cardALTA" onclick="selectTipo('ALTA')">
+            
+            <label class="radio-card" style="align-items: center;">
+              <input type="radio" name="tipo" value="ALTA" checked onchange="cambiarTipo(this.value)" style="width: 20px; height: 20px; margin-right: 10px;">
               <div>
                 <span class="rc-title">Nuevo Correo (Alta)</span>
                 <span class="rc-desc">Crear un correo para un empleado o departamento.</span>
               </div>
-            </div>
-            <div class="radio-card" id="cardBAJA" onclick="selectTipo('BAJA')">
+            </label>
+            
+            <label class="radio-card" style="align-items: center;">
+              <input type="radio" name="tipo" value="BAJA" onchange="cambiarTipo(this.value)" style="width: 20px; height: 20px; margin-right: 10px;">
               <div>
                 <span class="rc-title">Eliminar Correo (Baja)</span>
                 <span class="rc-desc">Dar de baja un correo sin uso para evitar cobros.</span>
               </div>
-            </div>
+            </label>
+
           </div>
         </div>
 
@@ -64,7 +69,7 @@
         </div>
 
         <div class="form-group">
-          <label for="correo_sugerido" id="lblCorreo">4. Correo Sugerido / Correo a Eliminar</label>
+          <label for="correo_sugerido" id="lblCorreo">4. Correo Sugerido</label>
           <input type="email" id="correo_sugerido" class="form-control" placeholder="Ej. jperez@ivad.com" required />
         </div>
 
@@ -76,7 +81,7 @@
 
         <div class="form-group">
           <label for="justificacion" id="lblJustificacion">6. Justificación de la Solicitud</label>
-          <textarea id="justificacion" class="form-control" placeholder="Explique por qué se necesita crear este correo o por qué se está dando de baja..." required></textarea>
+          <textarea id="justificacion" class="form-control" placeholder="Explique por qué se necesita crear este correo..." required></textarea>
         </div>
 
         <button type="submit" class="btn" id="submitBtn">Enviar Solicitud a Tecnología</button>
@@ -103,15 +108,9 @@
     
     let tipoActual = 'ALTA';
 
-    function selectTipo(tipo) {
+    function cambiarTipo(tipo) {
       tipoActual = tipo;
       
-      // Cambiar clases activas
-      $('cardALTA').classList.remove('active');
-      $('cardBAJA').classList.remove('active');
-      $('card' + tipo).classList.add('active');
-      
-      // Update dynamic texts
       if (tipo === 'BAJA') {
         $('passwordGroup').style.display = 'none';
         $('lblCorreo').textContent = '4. Correo a Eliminar';
