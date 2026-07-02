@@ -28,20 +28,18 @@
         <div class="form-group">
           <label>1. ¿Qué acción deseas realizar?</label>
           <div class="radio-group" id="tipoWrap">
-            <label class="radio-card active" data-v="ALTA">
-              <input type="radio" name="tipo" value="ALTA" checked style="display:none;">
+            <div class="radio-card active" data-v="ALTA">
               <div>
                 <span class="rc-title">Nuevo Correo (Alta)</span>
-                <span class="rc-desc">Crear un correo para un nuevo empleado o nuevo departamento.</span>
+                <span class="rc-desc">Crear un correo para un nuevo empleado o departamento.</span>
               </div>
-            </label>
-            <label class="radio-card" data-v="BAJA">
-              <input type="radio" name="tipo" value="BAJA" style="display:none;">
+            </div>
+            <div class="radio-card" data-v="BAJA">
               <div>
                 <span class="rc-title">Eliminar Correo (Baja)</span>
-                <span class="rc-desc">Dar de baja un correo sin uso para evitar cobros innecesarios de licencias.</span>
+                <span class="rc-desc">Dar de baja un correo sin uso para evitar cobros.</span>
               </div>
-            </label>
+            </div>
           </div>
         </div>
 
@@ -66,7 +64,7 @@
         </div>
 
         <div class="form-group">
-          <label for="correo_sugerido">4. Correo Sugerido / Correo a Eliminar</label>
+          <label for="correo_sugerido" id="lblCorreo">4. Correo Sugerido / Correo a Eliminar</label>
           <input type="email" id="correo_sugerido" class="form-control" placeholder="Ej. jperez@ivad.com" required />
         </div>
 
@@ -77,7 +75,7 @@
         </div>
 
         <div class="form-group">
-          <label for="justificacion">6. Justificación de la Solicitud</label>
+          <label for="justificacion" id="lblJustificacion">6. Justificación de la Solicitud</label>
           <textarea id="justificacion" class="form-control" placeholder="Explique por qué se necesita crear este correo o por qué se está dando de baja..." required></textarea>
         </div>
 
@@ -112,9 +110,20 @@
         radioCards.forEach(c => c.classList.remove('active'));
         card.classList.add('active');
         tipoActual = card.dataset.v;
-        
-        // Hide password field if it's a deletion
-        $('passwordGroup').style.display = tipoActual === 'BAJA' ? 'none' : 'block';
+        // Update dynamic texts
+        if (tipoActual === 'BAJA') {
+          $('passwordGroup').style.display = 'none';
+          $('lblCorreo').textContent = '4. Correo a Eliminar';
+          $('correo_sugerido').placeholder = 'Ej. jperez@ivad.com';
+          $('lblJustificacion').textContent = '5. Motivo de la Baja';
+          $('justificacion').placeholder = 'Explique por qué este correo ya no se utiliza...';
+        } else {
+          $('passwordGroup').style.display = 'block';
+          $('lblCorreo').textContent = '4. Correo Sugerido';
+          $('correo_sugerido').placeholder = 'Ej. jperez@ivad.com';
+          $('lblJustificacion').textContent = '6. Justificación de la Solicitud';
+          $('justificacion').placeholder = 'Explique por qué se necesita crear este correo...';
+        }
       });
     });
 
