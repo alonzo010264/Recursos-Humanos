@@ -11,6 +11,16 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!-- Diagnostic Box -->
+  <div id="debugBox" style="position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.85); color: #00ff00; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 11px; z-index: 99999; max-width: 320px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid #333;">
+    <div style="font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 5px; text-transform: uppercase;">Diagnóstico de Gráficos</div>
+    <div>• Supabase Lib: <span id="debugSupaLib">Cargando...</span></div>
+    <div>• Chart.js Lib: <span id="debugChartLib">Cargando...</span></div>
+    <div>• Conexión DB: <span id="debugDBConn">Cargando...</span></div>
+    <div>• Encuestas DB: <span id="debugDBRows">0</span></div>
+    <div style="margin-top:5px; border-top:1px solid #333; padding-top:5px;">• Error: <span id="debugErr" style="color: #ff5555; word-break: break-all;">Ninguno</span></div>
+  </div>
+
   <main style="background: #faf9f5;">
     <div class="panel-container">
       <div class="top-card">
@@ -143,6 +153,18 @@
     }
 
     const $ = (id) => document.getElementById(id);
+    
+    // Actualizar diagnóstico de librerías
+    setTimeout(() => {
+      if ($('debugSupaLib')) {
+        $('debugSupaLib').textContent = (typeof window.supabase !== 'undefined') ? 'OK (v2)' : 'FALLÓ';
+        if (typeof window.supabase === 'undefined') $('debugSupaLib').style.color = '#ff5555';
+        
+        $('debugChartLib').textContent = (typeof window.Chart !== 'undefined') ? 'OK' : 'FALLÓ';
+        if (typeof window.Chart === 'undefined') $('debugChartLib').style.color = '#ff5555';
+      }
+    }, 100);
+
     const starSVG = '<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.6 7.1.7-5.4 4.9 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.8l7.1-.7L12 2.5z"/></svg>';
 
     const supabaseUrl = 'https://rbtdahmhaksdvupsmkma.supabase.co';
@@ -168,13 +190,27 @@
 
         if (error) {
           console.error('Error fetching surveys:', error);
+          if ($('debugDBConn')) {
+            $('debugDBConn').textContent = 'ERROR';
+            $('debugDBConn').style.color = '#ff5555';
+            $('debugErr').textContent = error.message;
+          }
           document.body.insertAdjacentHTML('afterbegin', '<div style="background:orange;color:white;padding:20px;z-index:9999;position:relative;font-family:sans-serif;"><strong>ERROR DATABASE:</strong> ' + error.message + '</div>');
           return;
         }
         rows = data || [];
+        if ($('debugDBConn')) {
+          $('debugDBConn').textContent = 'CONECTADO';
+          $('debugDBRows').textContent = rows.length;
+        }
         render();
       } catch (err) {
         console.error('Error de conexión:', err);
+        if ($('debugDBConn')) {
+          $('debugDBConn').textContent = 'FALLÓ';
+          $('debugDBConn').style.color = '#ff5555';
+          $('debugErr').textContent = err.message;
+        }
         document.body.insertAdjacentHTML('afterbegin', '<div style="background:orange;color:white;padding:20px;z-index:9999;position:relative;font-family:sans-serif;"><strong>ERROR DE CONEXIÓN:</strong> ' + err.message + '. <br/><span style="font-size:12px;">Si abriste este archivo directamente desde tu PC, el navegador bloquea la descarga de datos por seguridad. Súbelo a GitHub/Vercel o usa un servidor local.</span></div>');
       }
     }
