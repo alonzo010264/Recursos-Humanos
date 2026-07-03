@@ -230,6 +230,79 @@ app.post('/api/solicitud', async (req, res) => {
   }
 });
 
+// Endpoint para notificar nuevos gastos
+app.post('/api/notify-expense', async (req, res) => {
+  try {
+    const data = req.body;
+    
+    // Inicializar Resend para gastos con la API Key correspondiente
+    const gastosResendKey = process.env.RESEND_GASTOS_API_KEY || 're_6Nknh66E_JkwVPQWKfLS61gNwnFopCsve';
+    const { Resend } = require('resend');
+    const resendGastos = new Resend(gastosResendKey);
+
+    const correosPorDefecto = [
+      'logistica@ivadsrl.com',
+      'tecnologia@ivadsrl.com',
+      'myriamlaval@ivadsrl.com',
+      'contabilidad@ivadsrl.com',
+      'joseramonmiranda@ivadsrl.com'
+    ];
+    const correosDestino = process.env.CORREOS_DESTINO ? process.env.CORREOS_DESTINO.split(',') : correosPorDefecto;
+    const correoOrigen = 'gastos@ivadsrl.com';
+
+    const logoUrl = "https://raw.githubusercontent.com/alonzo010264/Recursos-Humanos/main/Logo.png";
+    const estiloGlobal = `
+      <style>
+        body { font-family: Arial, sans-serif; background-color: #f5f2ec; margin: 0; padding: 20px; color: #1a2a5e; }
+        .container { background-color: #ffffff; padding: 30px; border-radius: 8px; max-width: 600px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #e6e1d6; }
+        .header { text-align: center; border-bottom: 2px solid #1a2a5e; padding-bottom: 20px; margin-bottom: 20px; }
+        .header img { max-width: 120px; }
+        .title { font-size: 20px; color: #1a2a5e; font-weight: bold; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px; }
+        .content p { margin: 8px 0; font-size: 15px; line-height: 1.5; }
+        .content strong { color: #6b6a63; }
+        .footer { margin-top: 30px; border-top: 1px solid #e6e1d6; padding-top: 15px; text-align: center; font-size: 12px; color: #6b6a63; }
+      </style>
+    `;
+
+    const formattedMonto = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(data.monto || 0);
+
+    const asunto = `Nuevo Gasto Registrado - ${data.categoria} (${formattedMonto})`;
+    const cuerpo = `
+      ${estiloGlobal}
+      <div class="container">
+        <div class="header">
+          <img src="${logoUrl}" alt="IVAD Home & Goods" />
+          <div class="title">REGISTRO DE GASTO</div>
+        </div>
+        <div class="content">
+          <p><strong>Fecha:</strong> ${data.fecha}</p>
+          <p><strong>Categoría:</strong> <span style="background: rgba(26,42,94,0.1); color: #1a2a5e; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 13px;">${data.categoria}</span></p>
+          <p><strong>Monto:</strong> <span style="font-size: 18px; font-weight: bold; color: #b04545;">${formattedMonto}</span></p>
+          <p><strong>Descripción:</strong> ${data.descripcion}</p>
+          <p><strong>Proveedor:</strong> ${data.proveedor || '—'}</p>
+          <p><strong>Método de Pago:</strong> ${data.metodo_pago}</p>
+          ${data.notas ? `<p><strong>Notas:</strong></p><p style="background: #f9f9f9; padding: 10px; border-left: 3px solid #c9a961; font-style: italic;">${data.notas}</p>` : ''}
+        </div>
+        <div class="footer">
+          IVAD Home & Goods · Panel de Control de Gastos
+        </div>
+      </div>
+    `;
+
+    await resendGastos.emails.send({
+      from: `IVAD Gastos <${correoOrigen}>`,
+      to: correosDestino,
+      subject: asunto,
+      html: cuerpo
+    });
+
+    res.status(200).json({ success: true, mensaje: 'Notificación de gasto enviada correctamente' });
+  } catch (error) {
+    console.error("Error al enviar notificación de gasto:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Servidor de Recursos Humanos corriendo en http://localhost:${port}`);
 });

@@ -309,10 +309,21 @@ document.addEventListener("DOMContentLoaded", () => {
         if (error) throw error;
         if (data && data.length) {
           state.rows.unshift(data[0]);
+          // Enviar correo de notificación de forma asíncrona
+          fetch('/api/notify-expense', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data[0])
+          }).catch(err => console.error("Fallo al enviar notificación:", err));
         } else {
           row.id = String(Date.now());
           row.created_at = new Date().toISOString();
           state.rows.unshift(row);
+          fetch('/api/notify-expense', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(row)
+          }).catch(err => console.error("Fallo al enviar notificación:", err));
         }
       } catch (err) {
         alert("Error al registrar en base de datos. Se registrará localmente de forma temporal. " + err.message);
