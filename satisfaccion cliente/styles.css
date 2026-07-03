@@ -215,16 +215,15 @@ textarea.field-line { resize: vertical; min-height: 90px; }
 @media (min-width: 900px) { .grid-charts { grid-template-columns: 2fr 1fr; } }
 .chart-card {
   background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius);
-  padding: 0; display: flex; flex-direction: column;
+  padding: 0; display: flex; flex-direction: column; overflow: hidden;
 }
-.chart-header { padding: 20px; border-bottom: none; }
+.chart-header { padding: 20px; border-bottom: 1px solid var(--rule); }
 .chart-tag {
-  display: inline-block; background: var(--ink); color: #fff; font-size: 11px; font-weight: 700;
-  letter-spacing: 0.1em; padding: 6px 12px; border-radius: 4px; text-transform: uppercase;
+  font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: 0.5px; text-transform: uppercase;
 }
-.chart-body { padding: 0 20px 20px 20px; flex: 1; position: relative; min-height: 250px; }
+.chart-body { padding: 20px; position: relative; height: 300px; width: 100%; }
 
-.donut-body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 250px; padding: 20px;}
+.donut-body { padding: 20px; position: relative; height: 300px; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .donut-legend { display: flex; gap: 16px; margin-top: 20px; justify-content: center; font-size: 12px; color: var(--ink-soft); }
 .donut-legend .item { display: flex; align-items: center; gap: 6px; }
 .donut-legend .sw { width: 10px; height: 10px; border-radius: 50%; }

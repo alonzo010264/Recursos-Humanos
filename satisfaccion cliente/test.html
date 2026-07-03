@@ -63,7 +63,7 @@
                 <div class="chart-tag">Distribución de calificaciones</div>
               </div>
               <div class="chart-body">
-                <canvas id="barChart" style="width: 100%; height: 100%;"></canvas>
+                <canvas id="barChart"></canvas>
               </div>
             </div>
 
@@ -87,7 +87,7 @@
               <div class="chart-tag">Tendencia · Últimos 14 días</div>
             </div>
             <div class="chart-body">
-              <canvas id="lineChart" style="width: 100%; height: 100%;"></canvas>
+              <canvas id="lineChart"></canvas>
             </div>
           </div>
 
@@ -368,7 +368,7 @@
       }
     };
 
-    fetchSurveys();
+    rows = [{id:1, calificacion: 5, recomienda: true, fecha: 6-07-01}]; render();
 
     supabase
       .channel('satisfaccion_changes')

@@ -81,3 +81,45 @@ textarea.form-control { min-height: 100px; resize: vertical; }
 .action-btn { background: none; border: 1px solid var(--rule); color: var(--ink-soft); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s; }
 .action-btn:hover { border-color: var(--primary); color: var(--primary); }
 .action-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+/* PURE CSS TAB TOGGLING */
+#opt-alta:checked ~ #seccionAlta { display: block !important; }
+#opt-alta:checked ~ #seccionBaja { display: none !important; }
+#opt-baja:checked ~ #seccionAlta { display: none !important; }
+#opt-baja:checked ~ #seccionBaja { display: block !important; }
+
+#opt-alta:checked ~ .form-group .select-alta,
+#opt-baja:checked ~ .form-group .select-baja {
+  border-color: var(--primary);
+  background: #f8fafc;
+}
+
+.custom-radio-indicator {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--rule);
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  position: relative;
+  transition: all 0.2s;
+  margin-top: 4px;
+}
+
+#opt-alta:checked ~ .form-group .select-alta .custom-radio-indicator,
+#opt-baja:checked ~ .form-group .select-baja .custom-radio-indicator {
+  border-color: var(--primary);
+}
+
+#opt-alta:checked ~ .form-group .select-alta .custom-radio-indicator::after,
+#opt-baja:checked ~ .form-group .select-baja .custom-radio-indicator::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background: var(--primary);
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
