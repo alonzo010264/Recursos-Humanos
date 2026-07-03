@@ -147,29 +147,40 @@
       document.body.insertAdjacentHTML('afterbegin', '<div style="background:red;color:white;padding:20px;z-index:9999;position:relative;font-family:sans-serif;"><strong>PROMISE ERROR:</strong> ' + e.reason + '</div>');
     });
 
-    // Validar carga de Supabase
-    if (typeof window.supabase === 'undefined') {
-      document.body.insertAdjacentHTML('afterbegin', '<div style="background:red;color:white;padding:20px;z-index:9999;position:relative;font-family:sans-serif;"><strong>ERROR DE LIBRERÍA:</strong> Supabase no pudo ser cargado. Asegúrate de tener conexión a internet.</div>');
+    // Actualizar diagnóstico de librerías de forma segura e inmediata
+    function updateDebugBox() {
+      const supaEl = document.getElementById('debugSupaLib');
+      const chartEl = document.getElementById('debugChartLib');
+      if (supaEl) {
+        supaEl.textContent = (typeof window.supabase !== 'undefined') ? 'OK (v2)' : 'FALLÓ';
+        if (typeof window.supabase === 'undefined') supaEl.style.color = '#ff5555';
+      }
+      if (chartEl) {
+        chartEl.textContent = (typeof window.Chart !== 'undefined') ? 'OK' : 'FALLÓ';
+        if (typeof window.Chart === 'undefined') chartEl.style.color = '#ff5555';
+      }
     }
 
-    const $ = (id) => document.getElementById(id);
-    
-    // Actualizar diagnóstico de librerías
-    setTimeout(() => {
-      if ($('debugSupaLib')) {
-        $('debugSupaLib').textContent = (typeof window.supabase !== 'undefined') ? 'OK (v2)' : 'FALLÓ';
-        if (typeof window.supabase === 'undefined') $('debugSupaLib').style.color = '#ff5555';
-        
-        $('debugChartLib').textContent = (typeof window.Chart !== 'undefined') ? 'OK' : 'FALLÓ';
-        if (typeof window.Chart === 'undefined') $('debugChartLib').style.color = '#ff5555';
-      }
-    }, 100);
+    // Ejecutar diagnóstico al cargar
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', updateDebugBox);
+    } else {
+      updateDebugBox();
+    }
 
     const starSVG = '<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.6 7.1.7-5.4 4.9 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.8l7.1-.7L12 2.5z"/></svg>';
 
     const supabaseUrl = 'https://rbtdahmhaksdvupsmkma.supabase.co';
     const supabaseKey = 'sb_publishable_GP8roaav6iIHoQfFp7ncBg_slCdxC7S';
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    
+    let supabase = null;
+    try {
+      if (typeof window.supabase !== 'undefined') {
+        supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+      }
+    } catch (e) {
+      console.error("Error al inicializar Supabase:", e);
+    }
 
     let rows = [];
     let barChartInst, donutChartInst, lineChartInst;
@@ -182,6 +193,15 @@
     } catch(err) {}
 
     async function fetchSurveys() {
+      if (!supabase) {
+        console.error('Supabase no inicializado.');
+        if (document.getElementById('debugDBConn')) {
+          document.getElementById('debugDBConn').textContent = 'SIN LIBRERÍA';
+          document.getElementById('debugDBConn').style.color = '#ff5555';
+          document.getElementById('debugErr').textContent = 'Librería de Supabase no cargó (revisa internet)';
+        }
+        return;
+      }
       try {
         const { data, error } = await supabase
           .from('satisfaccion')
@@ -190,26 +210,26 @@
 
         if (error) {
           console.error('Error fetching surveys:', error);
-          if ($('debugDBConn')) {
-            $('debugDBConn').textContent = 'ERROR';
-            $('debugDBConn').style.color = '#ff5555';
-            $('debugErr').textContent = error.message;
+          if (document.getElementById('debugDBConn')) {
+            document.getElementById('debugDBConn').textContent = 'ERROR';
+            document.getElementById('debugDBConn').style.color = '#ff5555';
+            document.getElementById('debugErr').textContent = error.message;
           }
           document.body.insertAdjacentHTML('afterbegin', '<div style="background:orange;color:white;padding:20px;z-index:9999;position:relative;font-family:sans-serif;"><strong>ERROR DATABASE:</strong> ' + error.message + '</div>');
           return;
         }
         rows = data || [];
-        if ($('debugDBConn')) {
-          $('debugDBConn').textContent = 'CONECTADO';
-          $('debugDBRows').textContent = rows.length;
+        if (document.getElementById('debugDBConn')) {
+          document.getElementById('debugDBConn').textContent = 'CONECTADO';
+          document.getElementById('debugDBRows').textContent = rows.length;
         }
         render();
       } catch (err) {
         console.error('Error de conexión:', err);
-        if ($('debugDBConn')) {
-          $('debugDBConn').textContent = 'FALLÓ';
-          $('debugDBConn').style.color = '#ff5555';
-          $('debugErr').textContent = err.message;
+        if (document.getElementById('debugDBConn')) {
+          document.getElementById('debugDBConn').textContent = 'FALLÓ';
+          document.getElementById('debugDBConn').style.color = '#ff5555';
+          document.getElementById('debugErr').textContent = err.message;
         }
         document.body.insertAdjacentHTML('afterbegin', '<div style="background:orange;color:white;padding:20px;z-index:9999;position:relative;font-family:sans-serif;"><strong>ERROR DE CONEXIÓN:</strong> ' + err.message + '. <br/><span style="font-size:12px;">Si abriste este archivo directamente desde tu PC, el navegador bloquea la descarga de datos por seguridad. Súbelo a GitHub/Vercel o usa un servidor local.</span></div>');
       }
