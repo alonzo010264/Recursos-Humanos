@@ -282,6 +282,12 @@ app.post('/api/notify-expense', async (req, res) => {
           <p><strong>Proveedor:</strong> ${data.proveedor || '—'}</p>
           <p><strong>Método de Pago:</strong> ${data.metodo_pago}</p>
           ${data.notas ? `<p><strong>Notas:</strong></p><p style="background: #f9f9f9; padding: 10px; border-left: 3px solid #c9a961; font-style: italic;">${data.notas}</p>` : ''}
+          ${data.evidencia ? `
+          <hr style="border: 0; border-top: 1px solid #e6e1d6; margin: 15px 0;">
+          <p><strong>Recibo de Evidencia:</strong></p>
+          <div style="text-align: center; margin-top: 10px;">
+            <img src="${data.evidencia}" style="max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 6px; border: 1px solid #e6e1d6;" />
+          </div>` : ''}
         </div>
         <div class="footer">
           IVAD Home & Goods · Panel de Control de Gastos
