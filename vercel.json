@@ -35,6 +35,10 @@
     {
       "src": "/login",
       "dest": "/server.js"
+    },
+    {
+      "src": "/control_gastos",
+      "dest": "/server.js"
     }
   ]
 }

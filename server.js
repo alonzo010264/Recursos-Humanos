@@ -61,6 +61,10 @@ app.get('/admin.js', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'admin.js'));
 });
 
+app.get('/control_gastos', (req, res) => {
+  res.sendFile(path.join(__dirname, 'control_gastos', 'index.html'));
+});
+
 app.get('/login', (req, res) => {
   if (req.session.autenticado) return res.redirect('/admin');
   res.sendFile(path.join(__dirname, 'login.html'));
