@@ -134,7 +134,7 @@
 
     const supabaseUrl = 'https://rbtdahmhaksdvupsmkma.supabase.co';
     const supabaseKey = 'sb_publishable_GP8roaav6iIHoQfFp7ncBg_slCdxC7S';
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     let rows = [];
     let barChartInst, donutChartInst, lineChartInst;
@@ -155,7 +155,7 @@
     } catch(err) {}
 
     async function fetchSurveys() {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('satisfaccion')
         .select('*')
         .order('created_at', { ascending: false });
@@ -359,7 +359,7 @@
     window.deleteRow = async function(id) {
       if (!confirm("¿Seguro que deseas eliminar esta encuesta? Esta acción no se puede deshacer.")) return;
       
-      const { error } = await supabase.from('satisfaccion').delete().eq('id', id);
+      const { error } = await supabaseClient.from('satisfaccion').delete().eq('id', id);
       if (error) {
         alert("Error al eliminar la encuesta: " + error.message);
       } else {
@@ -370,21 +370,23 @@
 
     rows = [{id:1, calificacion: 5, recomienda: true, fecha: '2026-07-01'}]; render();
 
-    supabase
-      .channel('satisfaccion_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'satisfaccion',
-        },
-        (payload) => {
-          rows.unshift(payload.new);
-          render();
-        }
-      )
-      .subscribe();
+    if (supabaseClient) {
+      supabaseClient
+        .channel('satisfaccion_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'satisfaccion',
+          },
+          (payload) => {
+            rows.unshift(payload.new);
+            render();
+          }
+        )
+        .subscribe();
+    }
   </script>
 </body>
 </html>

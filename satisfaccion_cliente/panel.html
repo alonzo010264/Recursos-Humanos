@@ -190,10 +190,10 @@
     const supabaseUrl = 'https://rbtdahmhaksdvupsmkma.supabase.co';
     const supabaseKey = 'sb_publishable_GP8roaav6iIHoQfFp7ncBg_slCdxC7S';
     
-    let supabase = null;
+    let supabaseClient = null;
     try {
       if (typeof window.supabase !== 'undefined') {
-        supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
       }
     } catch (e) {
       console.error("Error al inicializar Supabase:", e);
@@ -222,7 +222,7 @@
     }
 
     async function fetchSurveys() {
-      if (!supabase) {
+      if (!supabaseClient) {
         console.error('Supabase no inicializado.');
         if (document.getElementById('debugDBConn')) {
           document.getElementById('debugDBConn').textContent = 'SIN LIBRERÍA';
@@ -232,7 +232,7 @@
         return;
       }
       try {
-        const fetchPromise = supabase
+        const fetchPromise = supabaseClient
           .from('satisfaccion')
           .select('*')
           .order('created_at', { ascending: false });
@@ -457,7 +457,7 @@
     window.deleteRow = async function(id) {
       if (!confirm("¿Seguro que deseas eliminar esta encuesta? Esta acción no se puede deshacer.")) return;
       
-      const { error } = await supabase.from('satisfaccion').delete().eq('id', id);
+      const { error } = await supabaseClient.from('satisfaccion').delete().eq('id', id);
       if (error) {
         alert("Error al eliminar la encuesta: " + error.message);
       } else {
@@ -468,21 +468,23 @@
 
     fetchSurveys();
 
-    supabase
-      .channel('satisfaccion_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'satisfaccion',
-        },
-        (payload) => {
-          rows.unshift(payload.new);
-          render();
-        }
-      )
-      .subscribe();
+    if (supabaseClient) {
+      supabaseClient
+        .channel('satisfaccion_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'satisfaccion',
+          },
+          (payload) => {
+            rows.unshift(payload.new);
+            render();
+          }
+        )
+        .subscribe();
+    }
   </script>
 </body>
 </html>

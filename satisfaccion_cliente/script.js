@@ -74,7 +74,7 @@
   // Configurar Supabase
   const supabaseUrl = 'https://rbtdahmhaksdvupsmkma.supabase.co';
   const supabaseKey = 'sb_publishable_GP8roaav6iIHoQfFp7ncBg_slCdxC7S';
-  const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -105,7 +105,7 @@
     };
 
     try {
-      const { error } = await supabase.from('satisfaccion').insert([row]);
+      const { error } = await supabaseClient.from('satisfaccion').insert([row]);
       
       if (error) {
         throw error;
