@@ -64,6 +64,9 @@ app.get('/admin.js', requireAuth, (req, res) => {
 app.get('/control_gastos', (req, res) => {
   res.redirect('https://gestion.ivadsrl.com/control_gastos/');
 });
+app.get('/control_gastos/admin', (req, res) => {
+  res.redirect('https://gestion.ivadsrl.com/control_gastos/admin.html');
+});
 
 app.get('/login', (req, res) => {
   if (req.session.autenticado) return res.redirect('/admin');
