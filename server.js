@@ -62,7 +62,7 @@ app.get('/admin.js', requireAuth, (req, res) => {
 });
 
 app.get('/control_gastos', (req, res) => {
-  res.sendFile(path.join(__dirname, 'control_gastos', 'index.html'));
+  res.redirect('https://gestion.ivadsrl.com/control_gastos/');
 });
 
 app.get('/login', (req, res) => {
