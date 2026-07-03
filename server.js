@@ -264,7 +264,7 @@ app.post('/api/notify-expense', async (req, res) => {
       </style>
     `;
 
-    const formattedMonto = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(data.monto || 0);
+    const formattedMonto = new Intl.NumberFormat("es-DO", { style: "currency", currency: "DOP" }).format(data.monto || 0);
 
     const asunto = `Nuevo Gasto Registrado - ${data.categoria} (${formattedMonto})`;
     const cuerpo = `

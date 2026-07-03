@@ -17,7 +17,7 @@ const PALETTE = ["#1a2a5e", "#c9a961", "#4a5a8a", "#b04545", "#6d7ba5", "#8a6a3a
 const INK = "#1a2a5e";
 const STORAGE_KEY = "ivad_expenses_v1";
 
-const fmtMXN = n => new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 2 }).format(n || 0);
+const fmtMXN = n => new Intl.NumberFormat("es-DO", { style: "currency", currency: "DOP", minimumFractionDigits: 2 }).format(n || 0);
 const $ = s => document.querySelector(s);
 
 let state = { rows: [], filterMes: "", filterCat: "" };
@@ -71,7 +71,7 @@ function updateMesFilter() {
   const cur = sel.value;
   sel.innerHTML = '<option value="">Todos</option>' + arr.map(m => {
     const [y, mm] = m.split("-");
-    const label = new Date(+y, +mm - 1, 1).toLocaleDateString("es-MX", { month: "long", year: "numeric" });
+    const label = new Date(+y, +mm - 1, 1).toLocaleDateString("es-DO", { month: "long", year: "numeric" });
     return `<option value="${m}">${label}</option>`;
   }).join("");
   sel.value = cur;
@@ -118,7 +118,7 @@ function renderCharts(list) {
   const monthEntries = Object.entries(byMonth).sort(([a], [b]) => a.localeCompare(b)).slice(-6);
   const monthLabels = monthEntries.map(([k]) => {
     const [y, m] = k.split("-");
-    return new Date(+y, +m - 1, 1).toLocaleDateString("es-MX", { month: "short", year: "2-digit" });
+    return new Date(+y, +m - 1, 1).toLocaleDateString("es-DO", { month: "short", year: "2-digit" });
   });
 
   // Gráfico Circular (Categorías)
@@ -189,7 +189,7 @@ function renderTable(list, total) {
       <tbody>
         ${list.map(r => `
           <tr>
-            <td>${new Date(r.fecha + "T00:00:00").toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}</td>
+            <td>${new Date(r.fecha + "T00:00:00").toLocaleDateString("es-DO", { day: "2-digit", month: "short", year: "numeric" })}</td>
             <td><span class="chip">${r.categoria}</span></td>
             <td>${escapeHtml(r.descripcion)}${r.notas ? `<div class="note">${escapeHtml(r.notas)}</div>` : ""}</td>
             <td class="muted">${r.proveedor ? escapeHtml(r.proveedor) : "—"}</td>
