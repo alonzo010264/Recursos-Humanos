@@ -43,7 +43,7 @@ function requireAuth(req, res, next) {
 }
 
 // Rutas estáticas para la web pública (excepto admin)
-app.use(express.static('./', { index: false }));
+app.use(express.static('./', { index: false, extensions: ['html'] }));
 
 // Ruta principal
 app.get('/', (req, res) => {
