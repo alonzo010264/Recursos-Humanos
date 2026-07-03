@@ -47,20 +47,6 @@ body {
 /* Header */
 .header { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
 .header-left { display: flex; align-items: center; gap: 18px; }
-.logo-badge {
-  width: 64px;
-  height: 64px;
-  border-radius: 8px;
-  background: var(--ink);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Playfair Display', serif;
-  font-weight: 700;
-  font-size: 20px;
-  letter-spacing: 0.1em;
-}
 
 /* Buttons */
 .btn {
