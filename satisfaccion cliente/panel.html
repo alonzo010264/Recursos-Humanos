@@ -129,6 +129,19 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
+    // ERROR HANDLER para mostrar errores en pantalla inmediatamente
+    window.addEventListener('error', function(e) {
+      document.body.insertAdjacentHTML('afterbegin', '<div style="background:red;color:white;padding:20px;z-index:9999;position:relative;font-family:sans-serif;"><strong>JS ERROR:</strong> ' + e.message + ' en la línea ' + e.lineno + '</div>');
+    });
+    window.addEventListener('unhandledrejection', function(e) {
+      document.body.insertAdjacentHTML('afterbegin', '<div style="background:red;color:white;padding:20px;z-index:9999;position:relative;font-family:sans-serif;"><strong>PROMISE ERROR:</strong> ' + e.reason + '</div>');
+    });
+
+    // Validar carga de Supabase
+    if (typeof window.supabase === 'undefined') {
+      document.body.insertAdjacentHTML('afterbegin', '<div style="background:red;color:white;padding:20px;z-index:9999;position:relative;font-family:sans-serif;"><strong>ERROR DE LIBRERÍA:</strong> Supabase no pudo ser cargado. Asegúrate de tener conexión a internet.</div>');
+    }
+
     const $ = (id) => document.getElementById(id);
     const starSVG = '<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.6 7.1.7-5.4 4.9 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.8l7.1-.7L12 2.5z"/></svg>';
 
@@ -139,14 +152,6 @@
     let rows = [];
     let barChartInst, donutChartInst, lineChartInst;
 
-    // ERROR HANDLER para mostrar errores en pantalla y poder debuggear
-    window.addEventListener('error', function(e) {
-      document.body.insertAdjacentHTML('afterbegin', '<div style="background:red;color:white;padding:20px;z-index:9999;position:relative;">JS ERROR: ' + e.message + ' en la línea ' + e.lineno + '</div>');
-    });
-    window.addEventListener('unhandledrejection', function(e) {
-      document.body.insertAdjacentHTML('afterbegin', '<div style="background:red;color:white;padding:20px;z-index:9999;position:relative;">PROMISE ERROR: ' + e.reason + '</div>');
-    });
-
     try {
       if (typeof Chart !== 'undefined') {
         Chart.defaults.font.family = "'Inter', sans-serif";
@@ -155,17 +160,23 @@
     } catch(err) {}
 
     async function fetchSurveys() {
-      const { data, error } = await supabase
-        .from('satisfaccion')
-        .select('*')
-        .order('created_at', { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from('satisfaccion')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching surveys:', error);
-        return;
+        if (error) {
+          console.error('Error fetching surveys:', error);
+          document.body.insertAdjacentHTML('afterbegin', '<div style="background:orange;color:white;padding:20px;z-index:9999;position:relative;font-family:sans-serif;"><strong>ERROR DATABASE:</strong> ' + error.message + '</div>');
+          return;
+        }
+        rows = data || [];
+        render();
+      } catch (err) {
+        console.error('Error de conexión:', err);
+        document.body.insertAdjacentHTML('afterbegin', '<div style="background:orange;color:white;padding:20px;z-index:9999;position:relative;font-family:sans-serif;"><strong>ERROR DE CONEXIÓN:</strong> ' + err.message + '. <br/><span style="font-size:12px;">Si abriste este archivo directamente desde tu PC, el navegador bloquea la descarga de datos por seguridad. Súbelo a GitHub/Vercel o usa un servidor local.</span></div>');
       }
-      rows = data || [];
-      render();
     }
 
     function fmt(d) {
