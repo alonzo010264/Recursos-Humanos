@@ -5,6 +5,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let solicitudes = [];
 
+  const supabaseUrl = 'https://rbtdahmhaksdvupsmkma.supabase.co';
+  const supabaseKey = 'sb_publishable_GP8roaav6iIHoQfFp7ncBg_slCdxC7S';
+  let supabase = null;
+  if (window.supabase) {
+    supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+  }
+
   // Obtener datos
   async function fetchSolicitudes() {
     try {
@@ -13,21 +20,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = '/login';
         return;
       }
-      const json = await res.json();
-      solicitudes = json.data;
+      
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('solicitudes')
+          .select('*')
+          .order('id', { ascending: false });
+          
+        if (error) throw error;
+        solicitudes = data || [];
+      } else {
+        const json = await res.json();
+        solicitudes = json.data || [];
+      }
       renderTable(solicitudes);
     } catch (error) {
-      tableBody.innerHTML = `<tr><td colspan="6" class="loading">Error al cargar los datos</td></tr>`;
+      console.error(error);
+      tableBody.innerHTML = `<tr><td colspan="7" class="loading">Error al cargar los datos</td></tr>`;
     }
   }
 
   function renderTable(data) {
     if (data.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="6" class="loading">No hay solicitudes registradas</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="7" class="loading">No hay solicitudes registradas</td></tr>`;
       return;
     }
 
-    tableBody.innerHTML = data.map(item => `
+    tableBody.innerHTML = data.map(item => {
+      const descontar = item.descontarVacaciones || item.descontarvacaciones;
+      return `
       <tr>
         <td><strong>#${item.id}</strong></td>
         <td>
@@ -45,8 +66,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         <td>
           <span class="badge">${item.tipo}</span>
           <div class="text-sm">${item.total} (${item.hora})</div>
-          ${item.descontarVacaciones ? `<div class="text-sm" style="margin-top:5px; color:${item.descontarVacaciones === 'Si' ? '#d32f2f' : '#388e3c'}; font-weight: 500;">
-            Vacaciones: ${item.descontarVacaciones === 'Si' ? 'Descontar' : 'No descontar'}
+          ${descontar ? `<div class="text-sm" style="margin-top:5px; color:${descontar === 'Si' ? '#d32f2f' : '#388e3c'}; font-weight: 500;">
+            Vacaciones: ${descontar === 'Si' ? 'Descontar' : 'No descontar'}
           </div>` : ''}
         </td>
         <td style="max-width: 250px;">
@@ -58,7 +79,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           </button>
         </td>
       </tr>
-    `).join('');
+      `;
+    }).join('');
   }
 
   // Descargar a Word
@@ -96,7 +118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         <div class="field"><strong>Fechas:</strong> del ${item.desde} al ${item.hasta}</div>
         <div class="field"><strong>Horario:</strong> ${item.hora}</div>
         <div class="field"><strong>Total solicitado:</strong> ${item.total}</div>
-        <div class="field"><strong>¿Descontar de vacaciones?:</strong> ${item.descontarVacaciones || 'N/A'}</div>
+        <div class="field"><strong>¿Descontar de vacaciones?:</strong> ${item.descontarVacaciones || item.descontarvacaciones || 'N/A'}</div>
         <hr style="border: 0; border-top: 1px dashed #ccc; margin: 10px 0;" />
         <div class="field"><strong>Motivo principal:</strong></div>
         <div class="box">${item.motivo}</div>
