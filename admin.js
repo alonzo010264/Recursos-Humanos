@@ -228,6 +228,37 @@ document.addEventListener('DOMContentLoaded', async () => {
       let progressHTML = '';
       let cardActionsHTML = '';
 
+      // Circular / Radial SVG Progress Chart
+      const radius = 24;
+      const circumference = 2 * Math.PI * radius;
+      const percentAvailable = Math.min(100, Math.max(0, Math.round((emp.vacaciones_disponibles / emp.vacaciones_totales) * 100)));
+      const strokeDashoffset = circumference - (percentAvailable / 100) * circumference;
+
+      // Color based on availability
+      let strokeColor = '#1976d2'; // Blue
+      if (percentAvailable < 30) {
+        strokeColor = '#d32f2f'; // Red (low vacation balance)
+      } else if (emp.en_vacaciones) {
+        strokeColor = '#2e7d32'; // Green (currently on vacation)
+      }
+
+      const svgRadial = `
+        <div class="radial-chart-wrap" style="position: relative; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg width="64" height="64" viewBox="0 0 60 60" style="transform: rotate(-90deg);">
+            <circle cx="30" cy="30" r="${radius}" stroke="#f5f5f5" stroke-width="4.5" fill="transparent" />
+            <circle cx="30" cy="30" r="${radius}" stroke="${strokeColor}" stroke-width="4.5" fill="transparent" 
+              stroke-dasharray="${circumference}" 
+              stroke-dashoffset="${strokeDashoffset}" 
+              stroke-linecap="round"
+              style="transition: stroke-dashoffset 0.3s ease-in-out;" />
+          </svg>
+          <div style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; line-height: 1;">
+            <span style="font-size: 14px; font-weight: 700; color: #1a1a1a;">${emp.vacaciones_disponibles}</span>
+            <span style="font-size: 8px; color: #777; font-weight: 600; text-transform: uppercase; margin-top: 1px;">días</span>
+          </div>
+        </div>
+      `;
+
       if (emp.en_vacaciones) {
         const start = new Date(emp.fecha_inicio_vacaciones);
         const end = new Date(emp.fecha_fin_vacaciones);
@@ -239,9 +270,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const percent = Math.min(100, Math.round((elapsed / totalDuration) * 100));
 
         progressHTML = `
-          <div class="vac-progress-wrap">
-            <span class="vac-active-badge">En Vacaciones ✈️</span>
-            <div class="vac-label-row" style="margin-top: 8px;">
+          <div class="vac-progress-wrap" style="margin-top: 0;">
+            <span class="vac-active-badge">Vacaciones Activas</span>
+            <div class="vac-label-row" style="margin-top: 10px;">
               <span>Regreso: ${new Date(emp.fecha_fin_vacaciones).toLocaleDateString('es-ES')}</span>
               <span>Día ${Math.min(totalDuration, elapsed + 1)} de ${totalDuration}</span>
             </div>
@@ -252,46 +283,48 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
 
         cardActionsHTML = `
-          <button class="btn btn-secondary btn-card-action" style="border-color:#d32f2f; color:#d32f2f;" onclick="window.finalizarVacaciones(${emp.id})">
-            🛑 Finalizar Vacaciones
+          <button class="btn btn-secondary btn-card-action" style="border-color:#d32f2f; color:#d32f2f; height: 38px; display: flex; align-items: center; justify-content: center; font-weight: 600;" onclick="window.finalizarVacaciones(${emp.id})">
+            Finalizar Vacaciones
           </button>
         `;
       } else {
-        const percentAvailable = Math.round((emp.vacaciones_disponibles / emp.vacaciones_totales) * 100);
         progressHTML = `
-          <div class="vac-progress-wrap">
+          <div class="vac-progress-wrap" style="margin-top: 0;">
             <div class="vac-label-row">
               <span>Vacaciones Disponibles</span>
-              <span>${emp.vacaciones_disponibles} / ${emp.vacaciones_totales} días</span>
+              <span>${emp.vacaciones_disponibles} de ${emp.vacaciones_totales} días</span>
             </div>
             <div class="vac-bar-bg">
-              <div class="vac-bar-fill" style="width: ${percentAvailable}%;"></div>
+              <div class="vac-bar-fill" style="width: ${percentAvailable}%; background: ${strokeColor};"></div>
             </div>
           </div>
         `;
 
         cardActionsHTML = `
-          <button class="btn-card-action" onclick="window.abrirModalVacaciones(${emp.id}, '${emp.nombre.replace(/'/g, "\\'")}')">
-            ✈️ Tomar Vacaciones
+          <button class="btn btn-primary" style="width: 100%; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;" onclick="window.abrirModalVacaciones(${emp.id}, '${emp.nombre.replace(/'/g, "\\'")}')">
+            Tomar Vacaciones
           </button>
         `;
       }
 
       return `
-        <div class="employee-card">
-          <div class="emp-header">
-            <div class="emp-name">${emp.nombre}</div>
-            <div class="emp-puesto">${emp.puesto}</div>
+        <div class="employee-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 270px; background: white; border: 1px solid #eaeaea; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+          <div class="emp-header" style="display: flex; gap: 14px; align-items: center; border-bottom: 1px solid #f5f5f5; padding-bottom: 14px; margin-bottom: 14px;">
+            ${svgRadial}
+            <div style="min-width: 0; flex: 1;">
+              <div class="emp-name" style="font-size: 16px; font-weight: 700; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${emp.nombre}">${emp.nombre}</div>
+              <div class="emp-puesto" style="font-size: 13px; color: #666; margin-top: 2px; font-weight: 500;">${emp.puesto}</div>
+              <div style="font-size: 12px; color: #777; margin-top: 4px; font-weight: 500;">${emp.telefono || 'Sin teléfono'}</div>
+            </div>
           </div>
-          <div class="emp-details">
-            📞 ${emp.telefono || 'Sin teléfono'}<br/>
+          <div class="emp-details" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; margin-bottom: 14px;">
             ${progressHTML}
           </div>
-          <div style="display:flex; flex-direction:column; gap:6px;">
+          <div style="display:flex; flex-direction:column; gap:8px;">
             ${cardActionsHTML}
-            <div style="display:flex; gap:6px; margin-top:8px;">
-              <button class="btn btn-secondary" style="flex:1; padding:6px; font-size:12px;" onclick="window.abrirModalEditarEmpleado(${emp.id})">Editar</button>
-              <button class="btn btn-danger" style="flex:1; padding:6px; font-size:12px;" onclick="window.eliminarEmpleado(${emp.id})">Eliminar</button>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:12px; font-weight: 600; border: 1px solid #ddd; background: transparent; color: #555;" onclick="window.abrirModalEditarEmpleado(${emp.id})">Editar</button>
+              <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:12px; font-weight: 600; border: 1px solid rgba(211,47,47,0.2); background: transparent; color: #d32f2f;" onclick="window.eliminarEmpleado(${emp.id})">Eliminar</button>
             </div>
           </div>
         </div>
