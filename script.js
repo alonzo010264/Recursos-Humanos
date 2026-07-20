@@ -55,6 +55,101 @@ document.addEventListener('DOMContentLoaded', () => {
 
   form.addEventListener('input', checkValidity);
 
+  // Inicializar Supabase
+  const supabaseUrl = 'https://rbtdahmhaksdvupsmkma.supabase.co';
+  const supabaseKey = 'sb_publishable_GP8roaav6iIHoQfFp7ncBg_slCdxC7S';
+  let supabase = null;
+  if (window.supabase) {
+    supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+  }
+
+  // Cargar y Autocompletar Empleados
+  let listEmpleados = [];
+  const nombreInput = document.getElementById('nombreInput');
+  const puestoInput = document.getElementById('puestoInput');
+  const telefonoInput = document.getElementById('telefonoInput');
+  const vacacionesInfo = document.getElementById('vacacionesInfo');
+  let selectedEmployee = null;
+
+  async function loadEmpleados() {
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase.from('empleados').select('*');
+      if (error) throw error;
+      listEmpleados = data || [];
+      const datalist = document.getElementById('empleadosList');
+      if (datalist) {
+        datalist.innerHTML = listEmpleados.map(emp => `<option value="${emp.nombre}"></option>`).join('');
+      }
+    } catch (err) {
+      console.error("Error al cargar empleados:", err);
+    }
+  }
+
+  if (supabase) {
+    loadEmpleados();
+  }
+
+  function getRequestedDays() {
+    const totalInput = document.querySelector('input[name="total"]');
+    if (!totalInput) return 0;
+    const totalVal = parseFloat(totalInput.value) || 0;
+    const modalidad = document.querySelector('input[name="modalidad"]:checked')?.value || 'horas';
+    const descontar = document.querySelector('input[name="descontarVacaciones"]:checked')?.value || 'No';
+    
+    if (descontar === 'Si' && modalidad === 'dias') {
+      return totalVal;
+    }
+    return 0;
+  }
+
+  function validateVacationsLimit() {
+    if (!selectedEmployee) return;
+    const requestedDays = getRequestedDays();
+    if (requestedDays > selectedEmployee.vacaciones_disponibles) {
+      vacacionesInfo.style.display = 'block';
+      vacacionesInfo.style.color = '#d32f2f';
+      vacacionesInfo.textContent = `¡Advertencia! Estás solicitando ${requestedDays} días de vacaciones, pero solo tienes ${selectedEmployee.vacaciones_disponibles} disponibles.`;
+    } else {
+      vacacionesInfo.style.display = 'block';
+      vacacionesInfo.style.color = '#1976d2';
+      vacacionesInfo.textContent = `Colaborador registrado. Vacaciones disponibles: ${selectedEmployee.vacaciones_disponibles} días de ${selectedEmployee.vacaciones_totales} totales.`;
+    }
+  }
+
+  if (nombreInput) {
+    nombreInput.addEventListener('input', () => {
+      const val = nombreInput.value.trim().toLowerCase();
+      const matched = listEmpleados.find(emp => emp.nombre.trim().toLowerCase() === val);
+      if (matched) {
+        selectedEmployee = matched;
+        puestoInput.value = matched.puesto;
+        telefonoInput.value = matched.telefono || '';
+        puestoInput.readOnly = true;
+        telefonoInput.readOnly = true;
+        validateVacationsLimit();
+      } else {
+        selectedEmployee = null;
+        puestoInput.readOnly = false;
+        telefonoInput.readOnly = false;
+        puestoInput.value = '';
+        telefonoInput.value = '';
+        vacacionesInfo.style.display = 'none';
+      }
+    });
+  }
+
+  const totalInput = document.querySelector('input[name="total"]');
+  if (totalInput) {
+    totalInput.addEventListener('input', validateVacationsLimit);
+  }
+  document.querySelectorAll('input[name="modalidad"]').forEach(r => {
+    r.addEventListener('change', validateVacationsLimit);
+  });
+  document.querySelectorAll('input[name="descontarVacaciones"]').forEach(r => {
+    r.addEventListener('change', validateVacationsLimit);
+  });
+
   // Enviar formulario
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -77,6 +172,13 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error("Error al enviar la solicitud al servidor");
       }
 
+      // Restar días de vacaciones si corresponde
+      const requestedDays = getRequestedDays();
+      if (selectedEmployee && requestedDays > 0 && supabase) {
+        const newDays = Math.max(0, selectedEmployee.vacaciones_disponibles - requestedDays);
+        await supabase.from('empleados').update({ vacaciones_disponibles: newDays }).eq('id', selectedEmployee.id);
+      }
+
       // Éxito
       form.hidden = true;
       successDiv.hidden = false;
@@ -97,6 +199,11 @@ document.addEventListener('DOMContentLoaded', () => {
     successDiv.hidden = true;
     submitBtn.disabled = true;
     submitBtn.textContent = "ENVIAR SOLICITUD";
+    puestoInput.readOnly = false;
+    telefonoInput.readOnly = false;
+    vacacionesInfo.style.display = 'none';
+    selectedEmployee = null;
+    loadEmpleados();
     checkValidity();
   });
 

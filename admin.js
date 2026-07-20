@@ -3,8 +3,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   const searchInput = document.getElementById('searchInput');
   const logoutBtn = document.getElementById('logoutBtn');
 
-  let solicitudes = [];
+  // Pestañas
+  const tabSolicitudes = document.getElementById('tabSolicitudes');
+  const tabEmpleados = document.getElementById('tabEmpleados');
+  const sectionSolicitudes = document.getElementById('sectionSolicitudes');
+  const sectionEmpleados = document.getElementById('sectionEmpleados');
 
+  tabSolicitudes.addEventListener('click', () => {
+    tabSolicitudes.classList.add('active');
+    tabEmpleados.classList.remove('active');
+    sectionSolicitudes.style.display = 'block';
+    sectionEmpleados.style.display = 'none';
+  });
+
+  tabEmpleados.addEventListener('click', () => {
+    tabEmpleados.classList.add('active');
+    tabSolicitudes.classList.remove('active');
+    sectionSolicitudes.style.display = 'none';
+    sectionEmpleados.style.display = 'block';
+    fetchEmpleados();
+  });
+
+  // Inicializar Supabase
   const supabaseUrl = 'https://rbtdahmhaksdvupsmkma.supabase.co';
   const supabaseKey = 'sb_publishable_GP8roaav6iIHoQfFp7ncBg_slCdxC7S';
   let supabase = null;
@@ -12,7 +32,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
   }
 
-  // Obtener datos
+  let solicitudes = [];
+  let empleados = [];
+
+  // --- SOLICITUDES ---
   async function fetchSolicitudes() {
     try {
       const res = await fetch('/api/solicitudes');
@@ -83,7 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }).join('');
   }
 
-  // Descargar a Word
+  // Descargar Word
   window.descargarWord = function(id) {
     const item = solicitudes.find(s => s.id === id);
     if (!item) return;
@@ -154,6 +177,250 @@ document.addEventListener('DOMContentLoaded', async () => {
     URL.revokeObjectURL(url);
   };
 
+  // --- EMPLEADOS ---
+  const empleadosGrid = document.getElementById('empleadosGrid');
+
+  async function fetchEmpleados() {
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase
+        .from('empleados')
+        .select('*')
+        .order('nombre', { ascending: true });
+        
+      if (error) throw error;
+      
+      empleados = data || [];
+      
+      // Auto-restablecimiento (Lazy Reset)
+      const todayStr = new Date().toISOString().split('T')[0];
+      const expired = empleados.filter(emp => emp.en_vacaciones && emp.fecha_fin_vacaciones && emp.fecha_fin_vacaciones < todayStr);
+      
+      if (expired.length > 0) {
+        for (const emp of expired) {
+          await supabase.from('empleados').update({
+            en_vacaciones: false,
+            fecha_inicio_vacaciones: null,
+            fecha_fin_vacaciones: null
+          }).eq('id', emp.id);
+        }
+        // Recargar con los estados restablecidos
+        return fetchEmpleados();
+      }
+
+      renderEmpleados(empleados);
+    } catch (err) {
+      console.error(err);
+      empleadosGrid.innerHTML = `<div class="loading" style="grid-column: 1 / -1; color:#d32f2f;">Error al cargar los colaboradores</div>`;
+    }
+  }
+
+  function renderEmpleados(data) {
+    if (data.length === 0) {
+      empleadosGrid.innerHTML = `<div class="loading" style="grid-column: 1 / -1;">No hay colaboradores registrados. ¡Registra uno nuevo arriba!</div>`;
+      return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    empleadosGrid.innerHTML = data.map(emp => {
+      let progressHTML = '';
+      let cardActionsHTML = '';
+
+      if (emp.en_vacaciones) {
+        const start = new Date(emp.fecha_inicio_vacaciones);
+        const end = new Date(emp.fecha_fin_vacaciones);
+        start.setHours(0, 0, 0, 0);
+        end.setHours(0, 0, 0, 0);
+
+        const totalDuration = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1);
+        const elapsed = Math.max(0, Math.round((today - start) / (1000 * 60 * 60 * 24)));
+        const percent = Math.min(100, Math.round((elapsed / totalDuration) * 100));
+
+        progressHTML = `
+          <div class="vac-progress-wrap">
+            <span class="vac-active-badge">En Vacaciones ✈️</span>
+            <div class="vac-label-row" style="margin-top: 8px;">
+              <span>Regreso: ${new Date(emp.fecha_fin_vacaciones).toLocaleDateString('es-ES')}</span>
+              <span>Día ${Math.min(totalDuration, elapsed + 1)} de ${totalDuration}</span>
+            </div>
+            <div class="vac-bar-bg">
+              <div class="vac-bar-fill" style="width: ${percent}%; background:#2e7d32;"></div>
+            </div>
+          </div>
+        `;
+
+        cardActionsHTML = `
+          <button class="btn btn-secondary btn-card-action" style="border-color:#d32f2f; color:#d32f2f;" onclick="window.finalizarVacaciones(${emp.id})">
+            🛑 Finalizar Vacaciones
+          </button>
+        `;
+      } else {
+        const percentAvailable = Math.round((emp.vacaciones_disponibles / emp.vacaciones_totales) * 100);
+        progressHTML = `
+          <div class="vac-progress-wrap">
+            <div class="vac-label-row">
+              <span>Vacaciones Disponibles</span>
+              <span>${emp.vacaciones_disponibles} / ${emp.vacaciones_totales} días</span>
+            </div>
+            <div class="vac-bar-bg">
+              <div class="vac-bar-fill" style="width: ${percentAvailable}%;"></div>
+            </div>
+          </div>
+        `;
+
+        cardActionsHTML = `
+          <button class="btn-card-action" onclick="window.abrirModalVacaciones(${emp.id}, '${emp.nombre.replace(/'/g, "\\'")}')">
+            ✈️ Tomar Vacaciones
+          </button>
+        `;
+      }
+
+      return `
+        <div class="employee-card">
+          <div class="emp-header">
+            <div class="emp-name">${emp.nombre}</div>
+            <div class="emp-puesto">${emp.puesto}</div>
+          </div>
+          <div class="emp-details">
+            📞 ${emp.telefono || 'Sin teléfono'}<br/>
+            ${progressHTML}
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            ${cardActionsHTML}
+            <div style="display:flex; gap:6px; margin-top:8px;">
+              <button class="btn btn-secondary" style="flex:1; padding:6px; font-size:12px;" onclick="window.abrirModalEditarEmpleado(${emp.id})">Editar</button>
+              <button class="btn btn-danger" style="flex:1; padding:6px; font-size:12px;" onclick="window.eliminarEmpleado(${emp.id})">Eliminar</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // --- CRUD COLABORADORES ---
+  const modalEmpleado = document.getElementById('modalEmpleado');
+  const formEmpleado = document.getElementById('formEmpleado');
+  const modalEmpleadoTitle = document.getElementById('modalEmpleadoTitle');
+
+  document.getElementById('btnNuevoEmpleado').addEventListener('click', () => {
+    formEmpleado.reset();
+    document.getElementById('empId').value = '';
+    modalEmpleadoTitle.textContent = "Registrar Nuevo Colaborador";
+    modalEmpleado.classList.add('active');
+  });
+
+  const closeModalEmpleado = () => modalEmpleado.classList.remove('active');
+  document.getElementById('closeModalEmpleado').addEventListener('click', closeModalEmpleado);
+  document.getElementById('btnCancelarEmpleado').addEventListener('click', closeModalEmpleado);
+
+  formEmpleado.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('empId').value;
+    const nombre = document.getElementById('empNombre').value.trim();
+    const puesto = document.getElementById('empPuesto').value.trim();
+    const telefono = document.getElementById('empTelefono').value.trim();
+    const vacaciones_totales = parseFloat(document.getElementById('empVacTotales').value) || 0;
+    const vacaciones_disponibles = parseFloat(document.getElementById('empVacDisponibles').value) || 0;
+
+    const payload = { nombre, puesto, telefono, vacaciones_totales, vacaciones_disponibles };
+
+    try {
+      if (id) {
+        // Editar
+        const { error } = await supabase.from('empleados').update(payload).eq('id', id);
+        if (error) throw error;
+      } else {
+        // Nuevo
+        const { error } = await supabase.from('empleados').insert([payload]);
+        if (error) throw error;
+      }
+      closeModalEmpleado();
+      fetchEmpleados();
+    } catch (err) {
+      alert("Error al guardar el colaborador: " + err.message);
+    }
+  });
+
+  window.abrirModalEditarEmpleado = function(id) {
+    const emp = empleados.find(e => e.id === id);
+    if (!emp) return;
+
+    document.getElementById('empId').value = emp.id;
+    document.getElementById('empNombre').value = emp.nombre;
+    document.getElementById('empPuesto').value = emp.puesto;
+    document.getElementById('empTelefono').value = emp.telefono || '';
+    document.getElementById('empVacTotales').value = emp.vacaciones_totales;
+    document.getElementById('empVacDisponibles').value = emp.vacaciones_disponibles;
+
+    modalEmpleadoTitle.textContent = "Editar Colaborador";
+    modalEmpleado.classList.add('active');
+  };
+
+  window.eliminarEmpleado = async function(id) {
+    if (!confirm("¿Seguro que deseas eliminar este colaborador?")) return;
+    try {
+      const { error } = await supabase.from('empleados').delete().eq('id', id);
+      if (error) throw error;
+      fetchEmpleados();
+    } catch (err) {
+      alert("Error al eliminar colaborador: " + err.message);
+    }
+  };
+
+  // --- CONTROL VACACIONES ---
+  const modalVacaciones = document.getElementById('modalVacaciones');
+  const formVacaciones = document.getElementById('formVacaciones');
+
+  window.abrirModalVacaciones = function(id, nombre) {
+    formVacaciones.reset();
+    document.getElementById('vacEmpId').value = id;
+    document.getElementById('vacEmpNombre').value = nombre;
+    modalVacaciones.classList.add('active');
+  };
+
+  const closeModalVacaciones = () => modalVacaciones.classList.remove('active');
+  document.getElementById('closeModalVacaciones').addEventListener('click', closeModalVacaciones);
+  document.getElementById('btnCancelarVacaciones').addEventListener('click', closeModalVacaciones);
+
+  formVacaciones.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('vacEmpId').value;
+    const desde = document.getElementById('vacDesde').value;
+    const hasta = document.getElementById('vacHasta').value;
+
+    try {
+      const { error } = await supabase.from('empleados').update({
+        en_vacaciones: true,
+        fecha_inicio_vacaciones: desde,
+        fecha_fin_vacaciones: hasta
+      }).eq('id', id);
+
+      if (error) throw error;
+      closeModalVacaciones();
+      fetchEmpleados();
+    } catch (err) {
+      alert("Error al iniciar vacaciones: " + err.message);
+    }
+  });
+
+  window.finalizarVacaciones = async function(id) {
+    if (!confirm("¿Deseas finalizar anticipadamente las vacaciones de este colaborador?")) return;
+    try {
+      const { error } = await supabase.from('empleados').update({
+        en_vacaciones: false,
+        fecha_inicio_vacaciones: null,
+        fecha_fin_vacaciones: null
+      }).eq('id', id);
+
+      if (error) throw error;
+      fetchEmpleados();
+    } catch (err) {
+      alert("Error al finalizar vacaciones: " + err.message);
+    }
+  };
+
   // Búsqueda
   searchInput.addEventListener('input', (e) => {
     const text = e.target.value.toLowerCase();
@@ -170,15 +437,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.location.href = '/login';
   });
 
+  // Carga inicial
   fetchSolicitudes().then(() => {
-    // Inicializar Supabase para tiempo real (mismas credenciales públicas)
-    const supabaseUrl = 'https://rbtdahmhaksdvupsmkma.supabase.co';
-    const supabaseKey = 'sb_publishable_GP8roaav6iIHoQfFp7ncBg_slCdxC7S';
-    
     if (window.supabase) {
-      const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+      const supabaseRealtime = window.supabase.createClient(supabaseUrl, supabaseKey);
       
-      supabase
+      supabaseRealtime
         .channel('solicitudes_changes_web')
         .on(
           'postgres_changes',

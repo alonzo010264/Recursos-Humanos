@@ -38,17 +38,19 @@
     <section class="section">
       <div class="tag">DATOS DEL COLABORADOR</div>
       <div class="grid">
-        <label class="field full">
+        <label class="field full" style="position: relative;">
           <span>Nombre completo</span>
-          <input type="text" name="nombre" placeholder="Nombre y apellidos" maxlength="120" required />
+          <input type="text" id="nombreInput" name="nombre" placeholder="Escribe tu nombre..." list="empleadosList" maxlength="120" required autocomplete="off" />
+          <datalist id="empleadosList"></datalist>
+          <div id="vacacionesInfo" style="margin-top: 6px; font-size: 12px; font-weight: 600; color: #1976d2; display: none;"></div>
         </label>
         <label class="field">
           <span>Teléfono</span>
-          <input type="tel" name="telefono" maxlength="20" required />
+          <input type="tel" id="telefonoInput" name="telefono" maxlength="20" required />
         </label>
         <label class="field">
           <span>Puesto</span>
-          <input type="text" name="puesto" maxlength="80" required />
+          <input type="text" id="puestoInput" name="puesto" maxlength="80" required />
         </label>
       </div>
     </section>
@@ -161,6 +163,7 @@
   </div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="script.js"></script>
 </body>
 </html>
