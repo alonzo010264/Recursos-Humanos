@@ -25,8 +25,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Inicializar Supabase
-  const supabaseUrl = 'https://rbtdahmhaksdvupsmkma.supabase.co';
-  const supabaseKey = 'sb_publishable_GP8roaav6iIHoQfFp7ncBg_slCdxC7S';
+  const supabaseUrl = 'https://kedvsteugbbtkvzuflhp.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlZHZzdGV1Z2JidGt2enVmbGhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3Mzc2NDQsImV4cCI6MjA5OTMxMzY0NH0.4qxezljjSKoxD1amp2QrOl_gmQin-jg-ZIAXTw56TgY';
   let supabase = null;
   if (window.supabase) {
     supabase = window.supabase.createClient(supabaseUrl, supabaseKey);

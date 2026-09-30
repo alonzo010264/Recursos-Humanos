@@ -10,8 +10,8 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Inicializamos Resend (Fallback directo por si fallan las variables de Vercel)
-const resend = new Resend(process.env.RESEND_API_KEY || 're_ivMDQoyH_3PNTzFKrzAbFuDBSdeBAyzWy');
+// Inicializamos Resend
+const resend = new Resend(process.env.RESEND_API_KEY || '');
 
 // Configuración de Sesiones para el Login
 app.use(session({
@@ -29,8 +29,8 @@ app.use(express.urlencoded({ extended: true }));
 const { createClient } = require('@supabase/supabase-js');
 
 // Configuración de Supabase
-const supabaseUrl = process.env.SUPABASE_URL || 'https://rbtdahmhaksdvupsmkma.supabase.co';
-const supabaseKey = process.env.SUPABASE_KEY || 'sb_publishable_GP8roaav6iIHoQfFp7ncBg_slCdxC7S';
+const supabaseUrl = process.env.SUPABASE_URL || 'https://kedvsteugbbtkvzuflhp.supabase.co';
+const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlZHZzdGV1Z2JidGt2enVmbGhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3Mzc2NDQsImV4cCI6MjA5OTMxMzY0NH0.4qxezljjSKoxD1amp2QrOl_gmQin-jg-ZIAXTw56TgY';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Middleware de Autenticación
@@ -239,7 +239,7 @@ app.post('/api/notify-expense', async (req, res) => {
     const data = req.body;
     
     // Inicializar Resend para gastos con la API Key correspondiente
-    const gastosResendKey = process.env.RESEND_GASTOS_API_KEY || 're_6Nknh66E_JkwVPQWKfLS61gNwnFopCsve';
+    const gastosResendKey = process.env.RESEND_GASTOS_API_KEY || '';
     const { Resend } = require('resend');
     const resendGastos = new Resend(gastosResendKey);
 
